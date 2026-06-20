@@ -6,6 +6,7 @@ from datetime import date
 class Source:
     name: str
     url: str
+    include_title_patterns: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

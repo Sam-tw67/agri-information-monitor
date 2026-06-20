@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from urllib.parse import urlsplit
 
 import yaml
@@ -33,7 +34,28 @@ def read_sources(path: str | Path) -> list[Source]:
             raise SourceConfigError(f"sources 第 {index} 筆 URL 無效：{url or '(空白)'}")
         if not heading:
             raise SourceConfigError(f"sources 第 {index} 筆缺少 notion_heading 或 website")
-        sources.append(Source(name=heading, url=url))
+        raw_patterns = item.get("include_title_patterns", [])
+        if not isinstance(raw_patterns, list) or not all(
+            isinstance(pattern, str) and pattern.strip() for pattern in raw_patterns
+        ):
+            raise SourceConfigError(
+                f"sources 第 {index} 筆 include_title_patterns 必須是非空字串清單"
+            )
+        patterns = tuple(pattern.strip() for pattern in raw_patterns)
+        try:
+            for pattern in patterns:
+                re.compile(pattern)
+        except re.error as exc:
+            raise SourceConfigError(
+                f"sources 第 {index} 筆標題規則不是有效正規表示式：{exc}"
+            ) from exc
+        sources.append(
+            Source(
+                name=heading,
+                url=url,
+                include_title_patterns=patterns,
+            )
+        )
 
     if not sources:
         raise SourceConfigError("來源設定檔沒有任何 enabled: true 的有效來源")

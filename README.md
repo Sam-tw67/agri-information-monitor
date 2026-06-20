@@ -14,12 +14,23 @@ sources:
     url: https://www.newsmarket.com.tw/
     notion_heading: 上下游
     enabled: true
+    include_title_patterns: []
 ```
 
 - `url`：實際監控位置。
 - `notion_heading`：Notion page 內的二級標題。
 - `website`：方便人員辨識，不影響輸出。
 - `enabled`：只有布林值 `true` 才會執行。
+- `include_title_patterns`：選填的標題正規表示式白名單；有設定時，只有至少符合一條規則的文章會進入日期篩選。空清單代表不限制標題。
+
+農藥來源目前只收錄以下標題：
+
+- `公告修正「…」農藥使用方法…`
+- `公告「…」農藥使用方法…`
+- `預先通知公告「…」農藥使用方法…`
+- 以 `更新通知` 結尾的公告
+
+因此代噴人員及空中施作代噴人員等不符合規則的公告不會寫入 Notion。
 
 修改來源只需編輯此檔，不需改 Python。設定檔不存在、格式錯誤、URL 無效或沒有啟用來源時，任務會以非零狀態結束。
 

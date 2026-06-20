@@ -8,6 +8,11 @@ sources:
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
     notion_heading: 農藥與法規修正彙整表
     enabled: true
+    include_title_patterns:
+      - '^公告修正「.+」農藥使用方法'
+      - '^公告「.+」農藥使用方法'
+      - '^預先通知公告「.+」農藥使用方法'
+      - '更新通知$'
 
   - website: 疫情預警
     url: https://phis.aphia.gov.tw/list-1-102

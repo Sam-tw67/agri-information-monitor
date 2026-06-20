@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 import sys
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
@@ -43,6 +44,22 @@ def run(run_date: date, dry_run: bool = False) -> int:
     for source in sources:
         try:
             discovered = fetch_source(source)
+            if source.include_title_patterns:
+                before_count = len(discovered)
+                discovered = [
+                    article
+                    for article in discovered
+                    if any(
+                        re.search(pattern, article.title)
+                        for pattern in source.include_title_patterns
+                    )
+                ]
+                LOG.info(
+                    "來源標題白名單：%s，保留 %d/%d 篇候選文章",
+                    source.name,
+                    len(discovered),
+                    before_count,
+                )
             # Do not request article pages for entries whose reliable list/feed
             # date already proves they are outside this run's window.
             candidates = [
