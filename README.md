@@ -1,12 +1,15 @@
 # 農業資訊監控排程任務
 
-每週一台灣時間 08:00 讀取 repository 內的 `sources.yml`，擷取前一週完整七個曆日內發布的文章，並依完整標題在 Notion database 建立或更新一筆 page。只需設定一個機密：`NOTION_TOKEN`。
+每週一台灣時間 08:00 由 GitHub Actions 執行，關機後仍會運作。任務包含兩部分：
 
-程式只處理文章標題、原始 URL 與內部日期篩選所需的發布日期；不保存或寫入正文、摘要、圖片、作者或標籤。來源優先使用 RSS/Atom，找不到 feed 時才解析 HTML 文章列表與文章頁 metadata。
+1. 擷取三個農業資訊來源前一週完整七個曆日的文章，建立或更新一筆「農業資訊監控」週報。
+2. 掃描 ACRI 農藥問答集全部分頁，以六碼 `編號` 比對專用 Notion database，只新增尚不存在的問答，並把本次新增項目連結放進同一筆週報。
 
-## 來源設定
+程式不保存文章正文、摘要、圖片、作者或標籤。一般來源只處理標題、原始 URL 及日期；ACRI 只處理編號、類別、日期、問題標題及原始明細 URL。
 
-三個來源集中在 `sources.yml`，不散落於爬蟲程式中：
+## 監控來源
+
+三個一般來源集中在 `sources.yml`，修改來源不需改 Python：
 
 ```yaml
 sources:
@@ -18,29 +21,33 @@ sources:
 ```
 
 - `url`：實際監控位置。
-- `notion_heading`：Notion page 內的二級標題。
-- `website`：方便人員辨識，不影響輸出。
+- `notion_heading`：週報中的二級標題。
 - `enabled`：只有布林值 `true` 才會執行。
-- `include_title_patterns`：選填的標題正規表示式白名單；有設定時，只有至少符合一條規則的文章會進入日期篩選。空清單代表不限制標題。
+- `include_title_patterns`：選填的標題正規表示式白名單。
 
-農藥來源目前只收錄以下標題：
+農藥資訊服務網目前只收錄：公告修正農藥使用方法、公告農藥使用方法、預先通知公告農藥使用方法，以及標題以「更新通知」結尾的公告。代噴人員與空中施作代噴人員公告不會納入。
 
-- `公告修正「…」農藥使用方法…`
-- `公告「…」農藥使用方法…`
-- `預先通知公告「…」農藥使用方法…`
-- 以 `更新通知` 結尾的公告
+ACRI 來源由 `ACRI_SOURCE_URL` 指定，預設為 `https://mbox.acri.gov.tw/TA02.asp`。程式每次動態讀取最後頁碼並掃描全站，不採固定頁數，也不受週報七日區間限制。
 
-因此代噴人員及空中施作代噴人員等不符合規則的公告不會寫入 Notion。
+## Notion 目標
 
-修改來源只需編輯此檔，不需改 Python。設定檔不存在、格式錯誤、URL 無效或沒有啟用來源時，任務會以非零狀態結束。
+週報 database：
 
-## 前置需求
+- Database ID：`34435800664b80e0917dcd7c0535732c`
+- 必要欄位：`Name`（title）、`Status`（status 或 select，含 `Unread`）
 
-- Python 3.11 以上（GitHub Actions 使用 3.12）。
-- Notion integration token；integration 必須獲授權存取目標 database。
-- Notion database 必須只包含一個 data source，且已有 `Name`（title）及 `Status`（status 或 select）欄位，`Status` 有 `Unread` 選項。程式使用 Notion API `2026-03-11`；本專案已設定目標 data source ID，其他環境未設定時才由 database ID 自動發現。正式執行會先驗證 token、data source 權限與 schema，再開始爬取。程式不會變更 schema。
+ACRI 專用 database：
+
+- Database ID：`e2c49f31c2424e9db4b37cb662e079ff`
+- 必要欄位：`問題`（title）、`日期`（date）、`編號`（text）、`類別`（select）
+
+ACRI 的 `問題` 標題連回原始 ACRI 明細頁；週報中的 ACRI 標題則連到新建的 Notion 項目。若來源出現新的非空白類別，程式會保留既有選項並自動加入新選項。來源類別空白時仍會新增該筆，Notion 類別維持空白。
+
+同一 ACRI 編號已存在時不重複新增；若 database 原本已有重複編號，任務保留原資料、略過新增，並在 log 與週報警告。首次正式執行會回填所有缺少的歷史編號。
 
 ## 本機首次設定
+
+需求為 Python 3.11 以上（GitHub Actions 使用 3.12）：
 
 ```powershell
 py -3.12 -m venv .venv
@@ -49,13 +56,13 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-編輯 `.env`，只需填入：
+編輯 `.env`，只需填入機密：
 
 ```dotenv
-NOTION_TOKEN=你的_Notion_integration_token
+NOTION_TOKEN=你的_Notion_Internal_Integration_Access_Token
 ```
 
-`.env` 已被 `.gitignore` 排除，禁止提交 token。
+同一個 integration 必須連接週報與 ACRI 兩個 database。其他 ID 與 URL 已在 `.env.example` 提供。`.env` 已被 `.gitignore` 排除，不得提交 token、cookie 或憑證。
 
 執行測試：
 
@@ -63,15 +70,10 @@ NOTION_TOKEN=你的_Notion_integration_token
 python -m pytest -q
 ```
 
-手動 dry-run（實際檢查三個來源，但不連線或寫入 Notion）：
+Dry-run 會實際讀取來源及 Notion 既有編號，但不建立頁面、不修改欄位，也不更新週報：
 
 ```powershell
 python -m agri_monitor --dry-run
-```
-
-指定執行日重現某週：
-
-```powershell
 python -m agri_monitor --dry-run --run-date 2026-06-22
 ```
 
@@ -81,24 +83,31 @@ python -m agri_monitor --dry-run --run-date 2026-06-22
 python -m agri_monitor
 ```
 
-任一未處理錯誤、來源設定檔無效，或全部來源擷取失敗時，程式以狀態碼 1 結束。部分來源失敗時會留下 ERROR log，並以成功來源的結果更新該週 page。所有來源成功但沒有區間內文章時，page 內容為「本週無符合日期區間的新文章。」
+## GitHub Actions
 
-## GitHub Actions 設定
+Repository 的 **Settings → Secrets and variables → Actions** 只需一個 secret：
 
-在 repository 的 **Settings → Secrets and variables → Actions** 新增一個 secret：
+- `NOTION_TOKEN`：已連接兩個目標 database 的 Notion integration access token。
 
-- `NOTION_TOKEN`：Notion integration token。
+工作流程 `.github/workflows/agri-monitor.yml` 使用：
 
-接著確認 Actions 已啟用即可。排程使用 `0 0 * * 1`，即每週一 00:00 UTC；台灣全年為 UTC+8，因此實際在 `Asia/Taipei` 每週一 08:00 執行。也可在 Actions 頁面使用 `workflow_dispatch` 手動執行並勾選 dry-run。
+```yaml
+schedule:
+  - cron: "0 0 * * 1"
+```
 
-## 寫入與重跑行為
+這是每週一 00:00 UTC；台灣全年 UTC+8，因此實際為 `Asia/Taipei` 每週一 08:00。GitHub 伺服器負責執行，本機可關機。也可在 Actions 頁面手動 Run workflow，並選擇 dry-run。
 
-執行日往前 7 天為 `start_date`，往前 1 天為 `end_date`，首尾皆納入。例如 2026-06-22 執行會處理 2026-06-15 至 2026-06-21，page 標題固定為：
+## 週報與重跑規則
+
+執行日往前 7 天為 `start_date`，往前 1 天為 `end_date`，首尾皆納入。例如 2026-06-22 執行時，標題固定為：
 
 ```text
 農業資訊監控排程任務 (上次:2026-06-15/ 本次:2026-06-21)
 ```
 
-寫入前會以這個完整標題查詢 `Name`。不存在時建立 page 並將 `Status` 設為 `Unread`；存在時只替換 page 內容，不更新任何 properties，因此保留原 Status。若資料庫意外已有兩筆同名 page，任務會失敗，避免任意覆寫。
+寫入前依完整標題查詢：不存在時建立並將 `Status` 設為 `Unread`；存在時只替換內容，保留原 Status。同一次一般文章依 canonical URL 或正規化 URL 去重；沒有可靠日期的文章會記錄 warning 並略過。
 
-同次執行以 canonical URL（文章頁可取得時）或移除追蹤參數、fragment 並正規化後的 URL 跨來源去重。無可靠發布日期的文章會記錄 warning 後略過，不推測日期。
+ACRI 同步成功但沒有新編號時，週報的 `ACRI 農藥問答集` 段落顯示「本次無新增項目。」。首次回填即使項目很多，也會完整列出所有本次新增標題。
+
+若 ACRI 在部分新增後失敗，成功項目會保留並寫入週報，錯誤原因也會寫入週報，工作流程最後以非零狀態結束；下次執行會依編號自動續跑。若全部一般來源與 ACRI 都失敗，則不建立空白週報。
