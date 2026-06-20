@@ -26,10 +26,10 @@ def make_client(monkeypatch):
     return client, calls
 
 
-def test_uses_latest_notion_api_version():
+def test_uses_data_source_notion_api_version():
     client = NotionClient("token", "database-id")
-    assert NOTION_VERSION == "2026-03-11"
-    assert client.session.headers["Notion-Version"] == "2026-03-11"
+    assert NOTION_VERSION == "2025-09-03"
+    assert client.session.headers["Notion-Version"] == "2025-09-03"
 
 
 def test_database_is_resolved_to_single_data_source(monkeypatch):

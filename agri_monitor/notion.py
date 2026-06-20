@@ -6,7 +6,7 @@ import requests
 from .models import Article, Source
 
 LOG = logging.getLogger(__name__)
-NOTION_VERSION = "2026-03-11"
+NOTION_VERSION = "2025-09-03"
 
 
 class NotionError(RuntimeError):
