@@ -1,0 +1,46 @@
+name: Agricultural information monitor
+
+on:
+  schedule:
+    # 00:00 UTC = Monday 08:00 Asia/Taipei (UTC+8, no DST)
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (do not write to Notion)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agri-monitor-weekly
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATABASE_ID: 34435800664b80e0917dcd7c0535732c
+      TIMEZONE: Asia/Taipei
+      SOURCES_FILE: sources.yml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Run monitor
+        shell: bash
+        run: |
+          args=()
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then args+=(--dry-run); fi
+          python -m agri_monitor "${args[@]}"

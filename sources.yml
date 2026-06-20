@@ -1,0 +1,15 @@
+sources:
+  - website: 上下游新聞
+    url: https://www.newsmarket.com.tw/
+    notion_heading: 上下游
+    enabled: true
+
+  - website: 農藥資訊服務網
+    url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
+    notion_heading: 農藥與法規修正彙整表
+    enabled: true
+
+  - website: 疫情預警
+    url: https://phis.aphia.gov.tw/list-1-102
+    notion_heading: 植物疫情彙整表
+    enabled: true

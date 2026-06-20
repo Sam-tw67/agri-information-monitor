@@ -1,0 +1,1 @@
+"""Weekly agricultural information monitor."""
