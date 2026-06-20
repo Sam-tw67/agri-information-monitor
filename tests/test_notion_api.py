@@ -39,6 +39,18 @@ def test_database_is_resolved_to_single_data_source(monkeypatch):
     assert [call[1] for call in calls] == ["/databases/database-id"]
 
 
+def test_explicit_data_source_id_skips_database_discovery(monkeypatch):
+    client = NotionClient("token", "database-id", "explicit-data-source-id")
+    monkeypatch.setattr(
+        client,
+        "_request",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("database discovery must not run")
+        ),
+    )
+    assert client.data_source_id() == "explicit-data-source-id"
+
+
 def test_find_page_queries_data_source(monkeypatch):
     client, calls = make_client(monkeypatch)
     assert client.find_page("weekly-title") is None

@@ -26,6 +26,7 @@ jobs:
     env:
       NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
       NOTION_DATABASE_ID: 34435800664b80e0917dcd7c0535732c
+      NOTION_DATA_SOURCE_ID: 34435800-664b-8012-8600-000bcb8fbf31
       TIMEZONE: Asia/Taipei
       SOURCES_FILE: sources.yml
     steps:

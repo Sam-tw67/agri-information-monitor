@@ -14,9 +14,14 @@ class NotionError(RuntimeError):
 
 
 class NotionClient:
-    def __init__(self, token: str, database_id: str):
+    def __init__(
+        self,
+        token: str,
+        database_id: str,
+        data_source_id: str = "",
+    ):
         self.database_id = database_id
-        self._resolved_data_source_id: str | None = None
+        self._resolved_data_source_id: str | None = data_source_id or None
         self.session = requests.Session()
         self.session.headers.update(
             {

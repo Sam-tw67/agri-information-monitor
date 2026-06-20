@@ -64,7 +64,11 @@ def run(run_date: date, dry_run: bool = False) -> int:
         print(f"DRY-RUN page={title} articles={article_count}")
         return 0
 
-    client = NotionClient(_required("NOTION_TOKEN"), _required("NOTION_DATABASE_ID"))
+    client = NotionClient(
+        _required("NOTION_TOKEN"),
+        _required("NOTION_DATABASE_ID"),
+        os.getenv("NOTION_DATA_SOURCE_ID", "").strip(),
+    )
     action = client.upsert(title, build_blocks(grouped))
     print(f"Notion page {action}: {title}; articles={article_count}")
     return 0

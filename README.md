@@ -27,7 +27,7 @@ sources:
 
 - Python 3.11 以上（GitHub Actions 使用 3.12）。
 - Notion integration token；integration 必須獲授權存取目標 database。
-- Notion database 必須只包含一個 data source，且已有 `Name`（title）及 `Status`（status 或 select）欄位，`Status` 有 `Unread` 選項。程式使用 Notion API `2026-03-11`，會由 database ID 自動取得 data source ID，不會變更 schema。
+- Notion database 必須只包含一個 data source，且已有 `Name`（title）及 `Status`（status 或 select）欄位，`Status` 有 `Unread` 選項。程式使用 Notion API `2026-03-11`；本專案已設定目標 data source ID，其他環境未設定時才由 database ID 自動發現。程式不會變更 schema。
 
 ## 本機首次設定
 
