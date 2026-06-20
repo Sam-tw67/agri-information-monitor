@@ -6,7 +6,7 @@ import requests
 from .models import Article, Source
 
 LOG = logging.getLogger(__name__)
-NOTION_VERSION = "2022-06-28"
+NOTION_VERSION = "2026-03-11"
 
 
 class NotionError(RuntimeError):
@@ -16,6 +16,7 @@ class NotionError(RuntimeError):
 class NotionClient:
     def __init__(self, token: str, database_id: str):
         self.database_id = database_id
+        self._resolved_data_source_id: str | None = None
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -26,19 +27,52 @@ class NotionClient:
         )
 
     def _request(self, method: str, path: str, **kwargs):
-        response = self.session.request(method, f"https://api.notion.com/v1{path}", timeout=30, **kwargs)
+        response = self.session.request(
+            method,
+            f"https://api.notion.com/v1{path}",
+            timeout=30,
+            **kwargs,
+        )
         try:
             response.raise_for_status()
         except requests.HTTPError as exc:
-            raise NotionError(f"Notion API {method} {path} 失敗：{response.status_code} {response.text}") from exc
+            detail = response.text or "(Notion 未回傳錯誤內容)"
+            raise NotionError(
+                f"Notion API {method} {path} 失敗：{response.status_code} {detail}"
+            ) from exc
         return response.json() if response.content else {}
 
-    def database_schema(self) -> Mapping[str, object]:
-        return self._request("GET", f"/databases/{self.database_id}").get("properties", {})
+    def data_source_id(self) -> str:
+        """Resolve the single data source contained by the configured database."""
+        if self._resolved_data_source_id:
+            return self._resolved_data_source_id
+        database = self._request("GET", f"/databases/{self.database_id}")
+        data_sources = database.get("data_sources", [])
+        if len(data_sources) != 1 or not data_sources[0].get("id"):
+            raise NotionError(
+                "目標 Notion database 必須且只能包含一個 data source；"
+                f"目前取得 {len(data_sources)} 個"
+            )
+        self._resolved_data_source_id = data_sources[0]["id"]
+        return self._resolved_data_source_id
+
+    def data_source_schema(self) -> Mapping[str, object]:
+        data_source = self._request("GET", f"/data_sources/{self.data_source_id()}")
+        properties = data_source.get("properties", {})
+        if not isinstance(properties, Mapping):
+            raise NotionError("Notion data source 未回傳有效 properties schema")
+        return properties
 
     def find_page(self, title: str) -> dict | None:
-        payload = {"filter": {"property": "Name", "title": {"equals": title}}, "page_size": 2}
-        data = self._request("POST", f"/databases/{self.database_id}/query", json=payload)
+        payload = {
+            "filter": {"property": "Name", "title": {"equals": title}},
+            "page_size": 2,
+        }
+        data = self._request(
+            "POST",
+            f"/data_sources/{self.data_source_id()}/query",
+            json=payload,
+        )
         results = data.get("results", [])
         if len(results) > 1:
             raise NotionError(f"資料庫已有多筆同名頁面，拒絕任意更新：{title}")
@@ -47,7 +81,7 @@ class NotionClient:
     def _status_property(self, schema: Mapping[str, object]) -> dict:
         status = schema.get("Status")
         if not isinstance(status, Mapping):
-            raise NotionError("Notion 資料庫缺少 Status 欄位")
+            raise NotionError("Notion data source 缺少 Status 欄位")
         property_type = status.get("type")
         if property_type == "status":
             return {"status": {"name": "Unread"}}
@@ -56,14 +90,21 @@ class NotionClient:
         raise NotionError(f"Notion Status 欄位型別不支援：{property_type}")
 
     def create_page(self, title: str, blocks: list[dict]) -> str:
-        schema = self.database_schema()
+        schema = self.data_source_schema()
         name = schema.get("Name")
         if not isinstance(name, Mapping) or name.get("type") != "title":
-            raise NotionError("Notion 資料庫缺少 title 型別的 Name 欄位")
+            raise NotionError("Notion data source 缺少 title 型別的 Name 欄位")
         payload = {
-            "parent": {"database_id": self.database_id},
+            "parent": {
+                "type": "data_source_id",
+                "data_source_id": self.data_source_id(),
+            },
             "properties": {
-                "Name": {"title": [{"type": "text", "text": {"content": title}}]},
+                "Name": {
+                    "title": [
+                        {"type": "text", "text": {"content": title}}
+                    ]
+                },
                 "Status": self._status_property(schema),
             },
             "children": blocks[:100],
@@ -80,7 +121,9 @@ class NotionClient:
             params = {"page_size": 100}
             if cursor:
                 params["start_cursor"] = cursor
-            data = self._request("GET", f"/blocks/{page_id}/children", params=params)
+            data = self._request(
+                "GET", f"/blocks/{page_id}/children", params=params
+            )
             results.extend(data.get("results", []))
             if not data.get("has_more"):
                 return results
@@ -111,21 +154,49 @@ class NotionClient:
 
 
 def _rich_text(text: str, url: str | None = None) -> list[dict]:
-    return [{"type": "text", "text": {"content": text, "link": {"url": url} if url else None}}]
+    return [
+        {
+            "type": "text",
+            "text": {
+                "content": text,
+                "link": {"url": url} if url else None,
+            },
+        }
+    ]
 
 
-def build_blocks(grouped_articles: list[tuple[Source, list[Article]]]) -> list[dict]:
+def build_blocks(
+    grouped_articles: list[tuple[Source, list[Article]]],
+) -> list[dict]:
     if not any(articles for _, articles in grouped_articles):
-        return [{"object": "block", "type": "paragraph", "paragraph": {"rich_text": _rich_text("本週無符合日期區間的新文章。")} }]
+        return [
+            {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": _rich_text("本週無符合日期區間的新文章。")
+                },
+            }
+        ]
     blocks: list[dict] = []
     for source, articles in grouped_articles:
         if not articles:
             continue
         blocks.append(
-            {"object": "block", "type": "heading_2", "heading_2": {"rich_text": _rich_text(source.name)}}
+            {
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {"rich_text": _rich_text(source.name)},
+            }
         )
         for article in articles:
             blocks.append(
-                {"object": "block", "type": "bulleted_list_item", "bulleted_list_item": {"rich_text": _rich_text(article.title, article.url)}}
+                {
+                    "object": "block",
+                    "type": "bulleted_list_item",
+                    "bulleted_list_item": {
+                        "rich_text": _rich_text(article.title, article.url)
+                    },
+                }
             )
     return blocks
