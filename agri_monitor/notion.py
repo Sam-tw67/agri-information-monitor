@@ -6,7 +6,7 @@ import requests
 from .models import Article, Source
 
 LOG = logging.getLogger(__name__)
-NOTION_VERSION = "2025-09-03"
+NOTION_VERSION = "2026-03-11"
 
 
 class NotionError(RuntimeError):
@@ -67,6 +67,22 @@ class NotionClient:
         if not isinstance(properties, Mapping):
             raise NotionError("Notion data source 未回傳有效 properties schema")
         return properties
+
+    def validate_target(self) -> None:
+        """Fail fast on authentication, access, and required schema problems."""
+        self._request("GET", "/users/me")
+        schema = self.data_source_schema()
+        name = schema.get("Name")
+        if not isinstance(name, Mapping) or name.get("type") != "title":
+            raise NotionError("Notion data source 缺少 title 型別的 Name 欄位")
+        status_value = self._status_property(schema)
+        status = schema["Status"]
+        property_type = status.get("type")
+        options = status.get(property_type, {}).get("options", [])
+        if options and not any(option.get("name") == "Unread" for option in options):
+            raise NotionError("Notion Status 欄位缺少 Unread 選項")
+        if not status_value:
+            raise NotionError("Notion Status 欄位無法設定 Unread")
 
     def find_page(self, title: str) -> dict | None:
         payload = {

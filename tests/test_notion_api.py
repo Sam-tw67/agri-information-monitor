@@ -26,10 +26,10 @@ def make_client(monkeypatch):
     return client, calls
 
 
-def test_uses_data_source_notion_api_version():
+def test_uses_latest_notion_api_version():
     client = NotionClient("token", "database-id")
-    assert NOTION_VERSION == "2025-09-03"
-    assert client.session.headers["Notion-Version"] == "2025-09-03"
+    assert NOTION_VERSION == "2026-03-11"
+    assert client.session.headers["Notion-Version"] == "2026-03-11"
 
 
 def test_database_is_resolved_to_single_data_source(monkeypatch):
@@ -77,3 +77,22 @@ def test_create_page_uses_data_source_parent_and_unread_status(monkeypatch):
     assert payload["properties"]["Status"] == {
         "status": {"name": "Unread"}
     }
+
+
+def test_validate_target_checks_identity_and_schema(monkeypatch):
+    client, calls = make_client(monkeypatch)
+    original_request = client._request
+
+    def request(method, path, **kwargs):
+        if path == "/users/me":
+            calls.append((method, path, kwargs))
+            return {"object": "user"}
+        return original_request(method, path, **kwargs)
+
+    monkeypatch.setattr(client, "_request", request)
+    client.validate_target()
+    assert [call[1] for call in calls] == [
+        "/users/me",
+        "/databases/database-id",
+        "/data_sources/data-source-id",
+    ]

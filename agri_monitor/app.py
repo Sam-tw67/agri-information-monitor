@@ -28,6 +28,15 @@ def run(run_date: date, dry_run: bool = False) -> int:
 
     start_date, end_date = monitoring_window(run_date)
     title = page_title(start_date, end_date)
+    client = None
+    if not dry_run:
+        client = NotionClient(
+            _required("NOTION_TOKEN"),
+            _required("NOTION_DATABASE_ID"),
+            os.getenv("NOTION_DATA_SOURCE_ID", "").strip(),
+        )
+        client.validate_target()
+        LOG.info("Notion 身分、data source 權限與必要欄位驗證完成")
     grouped = []
     failures = 0
     seen_run_urls: set[str] = set()
@@ -64,11 +73,7 @@ def run(run_date: date, dry_run: bool = False) -> int:
         print(f"DRY-RUN page={title} articles={article_count}")
         return 0
 
-    client = NotionClient(
-        _required("NOTION_TOKEN"),
-        _required("NOTION_DATABASE_ID"),
-        os.getenv("NOTION_DATA_SOURCE_ID", "").strip(),
-    )
+    assert client is not None
     action = client.upsert(title, build_blocks(grouped))
     print(f"Notion page {action}: {title}; articles={article_count}")
     return 0
