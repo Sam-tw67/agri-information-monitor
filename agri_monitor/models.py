@@ -15,3 +15,28 @@ class Article:
     url: str
     published_date: date | None
     canonical_url: str | None = None
+
+
+@dataclass(frozen=True)
+class AcriEntry:
+    number: str
+    category: str
+    published_date: date
+    question: str
+    source_url: str
+
+
+@dataclass(frozen=True)
+class AcriCreatedEntry:
+    entry: AcriEntry
+    notion_url: str
+
+
+@dataclass
+class AcriSyncResult:
+    discovered_count: int
+    existing_count: int
+    planned_count: int
+    created: list[AcriCreatedEntry]
+    duplicate_numbers: list[str]
+    error: str | None = None

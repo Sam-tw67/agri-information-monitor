@@ -5,7 +5,7 @@ import pytest
 from agri_monitor import app
 from agri_monitor.config import read_sources
 from agri_monitor.dates import monitoring_window, page_title
-from agri_monitor.models import Article, Source
+from agri_monitor.models import AcriSyncResult, Article, Source
 from agri_monitor.notion import NotionClient, build_blocks
 from agri_monitor.scraper import _html_candidates, _pesticide_news_articles, filter_and_dedupe
 
@@ -72,17 +72,38 @@ def test_upsert_updates_existing_page_and_preserves_status(monkeypatch):
     assert calls == [("existing-page", [{"block": 1}])]
 
 
-def test_dry_run_does_not_construct_or_write_notion(monkeypatch, capsys):
+def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
     monkeypatch.setenv("NOTION_DATABASE_ID", "db")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
     monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
     monkeypatch.setattr(app, "fetch_source", lambda source: [Article("T", "https://article.test", date(2026, 6, 20))])
     monkeypatch.setattr(app, "enrich_article", lambda article: article)
-    monkeypatch.setattr(app, "NotionClient", lambda *args: pytest.fail("dry-run must not access Notion"))
+    clients = []
+
+    class FakeClient:
+        def __init__(self, *args):
+            clients.append(self)
+
+        def validate_target(self):
+            pass
+
+        def upsert(self, *_):
+            pytest.fail("dry-run must not write Notion")
+
+    monkeypatch.setattr(app, "NotionClient", FakeClient)
+    monkeypatch.setattr(
+        app,
+        "sync_acri",
+        lambda *args, **kwargs: AcriSyncResult(10, 8, 2, [], []),
+    )
     assert app.run(date(2026, 6, 22), dry_run=True) == 0
     output = capsys.readouterr().out
     assert "農業資訊監控排程任務 (上次:2026-06-15/ 本次:2026-06-21)" in output
     assert "articles=1" in output
+    assert "acri_new=2" in output
+    assert len(clients) == 2
 
 
 def test_source_config_uses_urls_and_notion_headings(tmp_path):
@@ -110,6 +131,45 @@ def test_source_config_uses_urls_and_notion_headings(tmp_path):
         ("農藥與法規修正彙整表", "https://pesticide.aphia.gov.tw/information/Data/NewsLast"),
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
+
+
+def test_acri_failure_updates_weekly_report_then_marks_run_failed(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("NOTION_DATABASE_ID", "weekly-db")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
+    monkeypatch.setattr(
+        app,
+        "fetch_source",
+        lambda source: [Article("T", "https://article.test", date(2026, 6, 20))],
+    )
+    monkeypatch.setattr(app, "enrich_article", lambda article: article)
+    writes = []
+
+    class FakeClient:
+        def __init__(self, token, database_id, data_source_id=""):
+            self.database_id = database_id
+
+        def validate_target(self):
+            pass
+
+        def upsert(self, title, blocks):
+            writes.append((title, blocks))
+            return "updated"
+
+    monkeypatch.setattr(app, "NotionClient", FakeClient)
+    monkeypatch.setattr(
+        app,
+        "sync_acri",
+        lambda *args, **kwargs: AcriSyncResult(
+            0, 0, 0, [], [], error="ACRI 測試錯誤"
+        ),
+    )
+    with pytest.raises(RuntimeError, match="ACRI 同步失敗"):
+        app.run(date(2026, 6, 22))
+    assert len(writes) == 1
+    assert "同步失敗：ACRI 測試錯誤" in str(writes[0][1])
 
 
 def test_phis_list_uses_time_text_and_ignores_navigation_links():
