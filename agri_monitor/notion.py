@@ -342,6 +342,23 @@ def build_blocks(
         )
     for source, articles in grouped_articles:
         if not articles:
+            if source.show_no_update:
+                blocks.append(
+                    {
+                        "object": "block",
+                        "type": "heading_2",
+                        "heading_2": {"rich_text": _rich_text(source.name)},
+                    }
+                )
+                blocks.append(
+                    {
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": _rich_text("本次無新增項目。")
+                        },
+                    }
+                )
             continue
         blocks.append(
             {

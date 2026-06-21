@@ -18,3 +18,14 @@ sources:
     url: https://phis.aphia.gov.tw/list-1-102
     notion_heading: 植物疫情彙整表
     enabled: true
+
+  - website: 衛生福利部食品藥物管理署
+    url: https://www.fda.gov.tw/TC/news.aspx?cid=3
+    notion_heading: 衛福部食藥署
+    enabled: true
+    parser: fda_news_table
+    query_keyword: 農藥殘留容許量標準
+    include_title_patterns:
+      - '農藥殘留容許量標準'
+    latest_only: true
+    show_no_update: true

@@ -7,7 +7,12 @@ from agri_monitor.config import read_sources
 from agri_monitor.dates import monitoring_window, page_title
 from agri_monitor.models import AcriSyncResult, Article, Source
 from agri_monitor.notion import NotionClient, build_blocks
-from agri_monitor.scraper import _html_candidates, _pesticide_news_articles, filter_and_dedupe
+from agri_monitor.scraper import (
+    _fda_news_articles,
+    _html_candidates,
+    _pesticide_news_articles,
+    filter_and_dedupe,
+)
 
 
 def test_monitoring_window_is_previous_seven_calendar_days():
@@ -201,3 +206,41 @@ def test_pesticide_dynamic_list_parser_extracts_only_title_url_and_date():
             date(2026, 6, 18),
         )
     ]
+
+
+def test_fda_parser_extracts_publication_date_and_original_url():
+    html = """
+    <table class="listTable"><tbody>
+      <tr><th>序號</th><th>標題</th><th>發布日期</th></tr>
+      <tr><td>1</td><td><a href="newsContent.aspx?cid=3&amp;id=31518">
+        修正「農藥殘留容許量標準」第三條附表一
+      </a></td><td>2026-04-21</td></tr>
+    </tbody></table>
+    """
+    assert _fda_news_articles(html, "https://www.fda.gov.tw/TC/news.aspx?cid=3") == [
+        Article(
+            "修正「農藥殘留容許量標準」第三條附表一",
+            "https://www.fda.gov.tw/TC/newsContent.aspx?cid=3&id=31518",
+            date(2026, 4, 21),
+        )
+    ]
+
+
+def test_latest_only_selects_newest_reliable_matching_announcement():
+    articles = [
+        Article("舊版", "https://fda.test/old", date(2025, 12, 1)),
+        Article("最新版", "https://fda.test/new", date(2026, 4, 21)),
+        Article("無日期", "https://fda.test/unknown", None),
+    ]
+    assert app._latest_reliable_article("衛福部食藥署", articles).title == "最新版"
+
+
+def test_source_with_no_update_gets_heading_and_no_update_message():
+    source = Source(
+        "衛福部食藥署",
+        "https://www.fda.gov.tw/TC/news.aspx?cid=3",
+        show_no_update=True,
+    )
+    blocks = build_blocks([(source, [])])
+    assert "衛福部食藥署" in str(blocks)
+    assert "本次無新增項目。" in str(blocks)

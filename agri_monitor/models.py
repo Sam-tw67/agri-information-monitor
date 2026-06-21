@@ -7,6 +7,10 @@ class Source:
     name: str
     url: str
     include_title_patterns: tuple[str, ...] = ()
+    parser: str = "generic"
+    query_keyword: str = ""
+    latest_only: bool = False
+    show_no_update: bool = False
 
 
 @dataclass(frozen=True)

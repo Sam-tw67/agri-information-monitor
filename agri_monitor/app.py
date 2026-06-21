@@ -25,6 +25,13 @@ def _required(name: str) -> str:
     return value
 
 
+def _latest_reliable_article(source_name: str, articles):
+    dated = [article for article in articles if article.published_date is not None]
+    if not dated:
+        raise RuntimeError(f"{source_name} 找不到具有可靠日期的最新版公告")
+    return max(dated, key=lambda article: article.published_date)
+
+
 def run(run_date: date, dry_run: bool = False) -> int:
     sources = read_sources(os.getenv("SOURCES_FILE", "sources.yml"))
     LOG.info("從來源設定檔讀取到 %d 個啟用來源", len(sources))
@@ -60,6 +67,13 @@ def run(run_date: date, dry_run: bool = False) -> int:
                     source.name,
                     len(discovered),
                     before_count,
+                )
+            if source.latest_only:
+                discovered = [_latest_reliable_article(source.name, discovered)]
+                LOG.info(
+                    "來源僅保留最新版：%s（%s）",
+                    discovered[0].title,
+                    discovered[0].published_date,
                 )
             # Do not request article pages for entries whose reliable list/feed
             # date already proves they are outside this run's window.
