@@ -49,11 +49,27 @@ def read_sources(path: str | Path) -> list[Source]:
             raise SourceConfigError(
                 f"sources 第 {index} 筆標題規則不是有效正規表示式：{exc}"
             ) from exc
+        parser = str(item.get("parser") or "generic").strip()
+        if parser not in {"generic", "fda_news_table"}:
+            raise SourceConfigError(
+                f"sources 第 {index} 筆 parser 不支援：{parser}"
+            )
+        query_keyword = str(item.get("query_keyword") or "").strip()
+        latest_only = item.get("latest_only", False)
+        show_no_update = item.get("show_no_update", False)
+        if not isinstance(latest_only, bool) or not isinstance(show_no_update, bool):
+            raise SourceConfigError(
+                f"sources 第 {index} 筆 latest_only/show_no_update 必須是布林值"
+            )
         sources.append(
             Source(
                 name=heading,
                 url=url,
                 include_title_patterns=patterns,
+                parser=parser,
+                query_keyword=query_keyword,
+                latest_only=latest_only,
+                show_no_update=show_no_update,
             )
         )
 

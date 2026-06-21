@@ -186,12 +186,47 @@ def _pesticide_news_articles(html: str, base_url: str) -> list[Article]:
     return articles
 
 
+def _fda_news_articles(html: str, base_url: str) -> list[Article]:
+    soup = BeautifulSoup(html, "html.parser")
+    articles = []
+    for row in soup.select("table.listTable tr"):
+        cells = row.find_all("td", recursive=False)
+        if len(cells) < 3:
+            continue
+        link = cells[1].find("a", href=True)
+        if link is None:
+            continue
+        title = link.get_text(" ", strip=True)
+        published = _parse_date(cells[2].get_text(" ", strip=True))
+        if title:
+            articles.append(
+                Article(title, urljoin(base_url, link["href"]), published)
+            )
+    return articles
+
+
 def fetch_source(source: Source) -> list[Article]:
+    request_url = source.url
+    if source.query_keyword:
+        parts = urlsplit(request_url)
+        query = parse_qsl(parts.query, keep_blank_values=True)
+        query = [(key, value) for key, value in query if key.lower() != "key"]
+        query.append(("key", source.query_keyword))
+        request_url = urlunsplit(
+            (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+        )
     try:
-        response = _get(source.url)
+        response = _get(request_url)
     except requests.RequestException as exc:
-        raise SourceFetchError(f"無法讀取 {source.url}：{exc}") from exc
+        raise SourceFetchError(f"無法讀取 {request_url}：{exc}") from exc
     content_type = response.headers.get("content-type", "").lower()
+    if source.parser == "fda_news_table":
+        articles = _fda_news_articles(response.text, response.url)
+        if not articles:
+            raise SourceFetchError(
+                f"食藥署公告列表可讀取，但找不到可解析項目：{request_url}"
+            )
+        return articles
     if response.url.startswith("https://pesticide.aphia.gov.tw/information/Data/NewsLast"):
         list_url = urljoin(response.url, "/information/Data/NewsList/?type=new&keyword=&newquery=true")
         try:
