@@ -330,7 +330,9 @@ def build_blocks(
     acri_result: AcriSyncResult | None = None,
 ) -> list[dict]:
     blocks: list[dict] = []
-    if not any(articles for _, articles in grouped_articles):
+    if not any(articles for _, articles in grouped_articles) and not any(
+        source.show_no_update for source, _ in grouped_articles
+    ):
         blocks.append(
             {
                 "object": "block",

@@ -136,6 +136,7 @@ def test_source_config_uses_urls_and_notion_headings(tmp_path):
         ("農藥與法規修正彙整表", "https://pesticide.aphia.gov.tw/information/Data/NewsLast"),
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
+    assert all(source.show_no_update for source in sources)
 
 
 def test_acri_failure_updates_weekly_report_then_marks_run_failed(monkeypatch):
@@ -244,3 +245,16 @@ def test_source_with_no_update_gets_heading_and_no_update_message():
     blocks = build_blocks([(source, [])])
     assert "衛福部食藥署" in str(blocks)
     assert "本次無新增項目。" in str(blocks)
+
+
+def test_all_empty_sources_show_each_no_update_message_without_global_only_text():
+    sources = [
+        Source("上下游", "https://www.newsmarket.com.tw/"),
+        Source("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
+    ]
+    blocks = build_blocks([(source, []) for source in sources])
+    serialized = str(blocks)
+    assert "上下游" in serialized
+    assert "植物疫情彙整表" in serialized
+    assert serialized.count("本次無新增項目。") == 2
+    assert "本週無符合日期區間的新文章。" not in serialized

@@ -56,7 +56,7 @@ def read_sources(path: str | Path) -> list[Source]:
             )
         query_keyword = str(item.get("query_keyword") or "").strip()
         latest_only = item.get("latest_only", False)
-        show_no_update = item.get("show_no_update", False)
+        show_no_update = item.get("show_no_update", True)
         if not isinstance(latest_only, bool) or not isinstance(show_no_update, bool):
             raise SourceConfigError(
                 f"sources 第 {index} 筆 latest_only/show_no_update 必須是布林值"

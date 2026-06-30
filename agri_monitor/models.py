@@ -10,7 +10,7 @@ class Source:
     parser: str = "generic"
     query_keyword: str = ""
     latest_only: bool = False
-    show_no_update: bool = False
+    show_no_update: bool = True
 
 
 @dataclass(frozen=True)
