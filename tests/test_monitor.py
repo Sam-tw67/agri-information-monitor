@@ -165,7 +165,14 @@ def test_new_dares_sources_are_configured_for_daily_monitoring():
     selected = [
         (source.name, source.url, source.parser)
         for source in sources
-        if source.name.startswith(("桃園農改場", "苗栗農改場", "台中農改場"))
+        if source.name.startswith((
+            "桃園農改場",
+            "苗栗農改場",
+            "台中農改場",
+            "高雄農改場",
+            "台南農改場",
+            "台東農改場",
+        ))
     ]
     assert selected == [
         (
@@ -192,6 +199,36 @@ def test_new_dares_sources_are_configured_for_daily_monitoring():
             "台中農改場－最新消息",
             "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
             "generic",
+        ),
+        (
+            "高雄農改場－公告資訊",
+            "https://www.kdais.gov.tw/theme_list.php?theme=news&sub_theme=announcement",
+            "dares_html_list",
+        ),
+        (
+            "台南農改場－本場快訊",
+            "https://www.tndais.gov.tw/theme_list.php?theme=news_list",
+            "dares_html_list",
+        ),
+        (
+            "台東農改場－新聞",
+            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=news",
+            "dares_html_list",
+        ),
+        (
+            "台東農改場－活動",
+            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=activity",
+            "dares_html_list",
+        ),
+        (
+            "台東農改場－公告",
+            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=announcement",
+            "dares_html_list",
+        ),
+        (
+            "台東農改場－警報",
+            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=warning",
+            "dares_html_list",
         ),
     ]
 

@@ -70,6 +70,65 @@ sources:
       - 'AXIS|數位領袖班'
       - '業界參與補助|補助公告|補助實施計畫'
 
+  - website: 高雄區農業改良場公告資訊
+    url: https://www.kdais.gov.tw/theme_list.php?theme=news&sub_theme=announcement
+    notion_heading: 高雄農改場－公告資訊
+    enabled: true
+    parser: dares_html_list
+    exclude_title_patterns:
+      - '協助.*公告'
+      - '職缺|徵才|約用|約僱|資格審查|合格名單|錄取|遴選|甄選|甄試|移撥|標售|招標'
+      - '省工高效及碳匯農機補助|業界參與補助|補助公告|補助實施計畫'
+      - '租稅|稅務|繪畫比賽|夏令營'
+      - '開放參觀日|成果特展|家政'
+      - '延期|另行通知'
+
+  - website: 台南區農業改良場本場快訊
+    url: https://www.tndais.gov.tw/theme_list.php?theme=news_list
+    notion_heading: 台南農改場－本場快訊
+    enabled: true
+    parser: dares_html_list
+    exclude_title_patterns:
+      - '協助.*公告'
+      - '職缺|徵才|約用|約僱|資格審查|合格名單|錄取|遴選|甄選|甄試|移撥|標售|招標'
+      - '省工高效及碳匯農機補助|業界參與補助|補助公告|補助實施計畫'
+      - '租稅|稅務|繪畫比賽|夏令營'
+      - '開放參觀日|成果特展|家政'
+      - '延期|另行通知'
+
+  - website: 台東區農業改良場新聞
+    url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=news
+    notion_heading: 台東農改場－新聞
+    enabled: true
+    parser: dares_html_list
+
+  - website: 台東區農業改良場活動
+    url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=activity
+    notion_heading: 台東農改場－活動
+    enabled: true
+    parser: dares_html_list
+    exclude_title_patterns:
+      - '開放參觀日|成果特展|家政'
+      - '延期|另行通知'
+
+  - website: 台東區農業改良場公告
+    url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=announcement
+    notion_heading: 台東農改場－公告
+    enabled: true
+    parser: dares_html_list
+    exclude_title_patterns:
+      - '協助.*公告'
+      - '職缺|徵才|約用|約僱|資格審查|合格名單|錄取|遴選|甄選|甄試|移撥|標售|招標'
+      - '省工高效及碳匯農機補助|業界參與補助|補助公告|補助實施計畫'
+      - '租稅|稅務|繪畫比賽|夏令營'
+      - '延期|另行通知'
+
+  - website: 台東區農業改良場警報
+    url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=warning
+    notion_heading: 台東農改場－警報
+    enabled: true
+    parser: dares_html_list
+
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
     notion_heading: 上下游
