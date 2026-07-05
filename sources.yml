@@ -75,6 +75,8 @@ sources:
     notion_heading: 高雄農改場－公告資訊
     enabled: true
     parser: dares_html_list
+    include_title_patterns:
+      - '雨後|鋒面|防汛|汛期|病害|玉荷包.*穩產技術觀摩'
     exclude_title_patterns:
       - '協助.*公告'
       - '職缺|徵才|約用|約僱|資格審查|合格名單|錄取|遴選|甄選|甄試|移撥|標售|招標'
@@ -88,6 +90,10 @@ sources:
     notion_heading: 台南農改場－本場快訊
     enabled: true
     parser: dares_html_list
+    include_title_patterns:
+      - '豪雨|變天下雨|積水|田間排水|作物病害|防治病害'
+      - '國產火鶴花|專用保鮮劑|蘆筍栽培.*機械作業'
+      - '西瓜技術諮詢講習|大蒜技術諮詢講習|文旦修剪枝條.*土壤增匯'
     exclude_title_patterns:
       - '協助.*公告'
       - '職缺|徵才|約用|約僱|資格審查|合格名單|錄取|遴選|甄選|甄試|移撥|標售|招標'
@@ -101,11 +107,15 @@ sources:
     notion_heading: 台東農改場－新聞
     enabled: true
     parser: dares_html_list
+    include_title_patterns:
+      - '梅子友善栽培|芒果栽培|水稻田間歇灌溉'
+      - '禾蛛緣椿象|白將軍|白殭菌'
+      - '落實有機及友善環境耕作'
 
   - website: 台東區農業改良場活動
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=activity
     notion_heading: 台東農改場－活動
-    enabled: true
+    enabled: false
     parser: dares_html_list
     exclude_title_patterns:
       - '開放參觀日|成果特展|家政'
@@ -114,7 +124,7 @@ sources:
   - website: 台東區農業改良場公告
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=announcement
     notion_heading: 台東農改場－公告
-    enabled: true
+    enabled: false
     parser: dares_html_list
     exclude_title_patterns:
       - '協助.*公告'
@@ -126,7 +136,7 @@ sources:
   - website: 台東區農業改良場警報
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=warning
     notion_heading: 台東農改場－警報
-    enabled: true
+    enabled: false
     parser: dares_html_list
 
   - website: 上下游新聞

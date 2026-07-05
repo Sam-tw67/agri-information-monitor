@@ -215,21 +215,6 @@ def test_new_dares_sources_are_configured_for_daily_monitoring():
             "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=news",
             "dares_html_list",
         ),
-        (
-            "台東農改場－活動",
-            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=activity",
-            "dares_html_list",
-        ),
-        (
-            "台東農改場－公告",
-            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=announcement",
-            "dares_html_list",
-        ),
-        (
-            "台東農改場－警報",
-            "https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=warning",
-            "dares_html_list",
-        ),
     ]
 
 
