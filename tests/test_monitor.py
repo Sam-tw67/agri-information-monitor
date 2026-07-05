@@ -184,16 +184,60 @@ def test_new_dares_sources_are_configured_for_daily_monitoring():
             "dares_html_list",
         ),
         (
-            "台中農改場－最新消息",
-            "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
-            "generic",
-        ),
-        (
             "台中農改場－新聞資訊",
             "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss",
             "generic",
         ),
+        (
+            "台中農改場－最新消息",
+            "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
+            "generic",
+        ),
     ]
+
+
+def test_source_config_reads_exclude_title_patterns():
+    sources = read_sources("sources.yml")
+    by_name = {source.name: source for source in sources}
+    assert "協助.*公告" in by_name["台中農改場－最新消息"].exclude_title_patterns
+    assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
+    assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
+    assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
+
+
+def test_source_title_exclude_patterns_remove_unwanted_categories():
+    source = Source(
+        "台中農改場－最新消息",
+        "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
+        exclude_title_patterns=("協助.*公告", "職缺|徵才|約用人員"),
+    )
+    articles = [
+        Article("協助農業部公告115年度「AXIS－農業跨域數位領袖班」", "https://example.test/a", date(2026, 6, 22)),
+        Article("公告本場農業推廣科約用人員職缺", "https://example.test/b", date(2026, 6, 25)),
+        Article("豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!", "https://example.test/c", date(2026, 6, 29)),
+    ]
+    assert app._apply_source_title_filters(source, articles) == [articles[2]]
+
+
+def test_run_level_dedupe_skips_same_day_same_site_same_title():
+    articles = [
+        Article(
+            "豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!",
+            "https://www.tcdares.gov.tw/theme_data.php?theme=news&sub_theme=news&id=16193",
+            date(2026, 6, 29),
+        ),
+        Article(
+            "豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!",
+            "https://www.tcdares.gov.tw/theme_data.php?theme=news&sub_theme=hot&id=16193",
+            date(2026, 6, 29),
+        ),
+        Article(
+            "豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!",
+            "https://elsewhere.test/theme_data.php?id=16193",
+            date(2026, 6, 29),
+        ),
+    ]
+    assert app._dedupe_run_articles(articles, set(), set()) == [articles[0], articles[2]]
 
 
 def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):

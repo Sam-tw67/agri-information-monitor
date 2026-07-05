@@ -4,6 +4,7 @@ import os
 import re
 import sys
 from datetime import date, datetime
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -11,11 +12,12 @@ from dotenv import load_dotenv
 from .acri import AcriScraper, sync_acri
 from .config import read_sources
 from .dates import monitoring_window, page_title
-from .models import AcriSyncResult
+from .models import AcriSyncResult, Article, Source
 from .notion import NotionClient, build_blocks
-from .scraper import enrich_article, fetch_source, filter_and_dedupe
+from .scraper import enrich_article, fetch_source, filter_and_dedupe, normalize_url
 
 LOG = logging.getLogger(__name__)
+TITLE_DATE_PREFIX = re.compile(r"^\s*\d{2,3}[-/]\d{1,2}[-/]\d{1,2}\s+")
 
 
 def _required(name: str) -> str:
@@ -30,6 +32,57 @@ def _latest_reliable_article(source_name: str, articles):
     if not dated:
         raise RuntimeError(f"{source_name} 找不到具有可靠日期的最新版公告")
     return max(dated, key=lambda article: article.published_date)
+
+
+def _matches_any(patterns: tuple[str, ...], title: str) -> bool:
+    return any(re.search(pattern, title) for pattern in patterns)
+
+
+def _apply_source_title_filters(source: Source, articles: list[Article]) -> list[Article]:
+    result = articles
+    if source.include_title_patterns:
+        result = [
+            article
+            for article in result
+            if _matches_any(source.include_title_patterns, article.title)
+        ]
+    if source.exclude_title_patterns:
+        result = [
+            article
+            for article in result
+            if not _matches_any(source.exclude_title_patterns, article.title)
+        ]
+    return result
+
+
+def _normalized_title(title: str) -> str:
+    title = TITLE_DATE_PREFIX.sub("", title)
+    return re.sub(r"\s+", " ", title).strip()
+
+
+def _article_hostname(article: Article) -> str:
+    return urlsplit(article.canonical_url or article.url).netloc.lower()
+
+
+def _dedupe_run_articles(
+    articles: list[Article],
+    seen_run_urls: set[str],
+    seen_run_titles: set[tuple[date | None, str, str]],
+) -> list[Article]:
+    unique_articles = []
+    for article in articles:
+        url_key = normalize_url(article.canonical_url or article.url)
+        title_key = (
+            article.published_date,
+            _article_hostname(article),
+            _normalized_title(article.title),
+        )
+        if url_key in seen_run_urls or title_key in seen_run_titles:
+            continue
+        seen_run_urls.add(url_key)
+        seen_run_titles.add(title_key)
+        unique_articles.append(article)
+    return unique_articles
 
 
 def run(run_date: date, dry_run: bool = False) -> int:
@@ -49,21 +102,38 @@ def run(run_date: date, dry_run: bool = False) -> int:
     grouped = []
     failures = 0
     seen_run_urls: set[str] = set()
+    seen_run_titles: set[tuple[date | None, str, str]] = set()
     for source in sources:
         try:
             discovered = fetch_source(source)
             if source.include_title_patterns:
                 before_count = len(discovered)
-                discovered = [
-                    article
-                    for article in discovered
-                    if any(
-                        re.search(pattern, article.title)
-                        for pattern in source.include_title_patterns
-                    )
-                ]
+                discovered = _apply_source_title_filters(
+                    Source(
+                        source.name,
+                        source.url,
+                        include_title_patterns=source.include_title_patterns,
+                    ),
+                    discovered,
+                )
                 LOG.info(
                     "來源標題白名單：%s，保留 %d/%d 篇候選文章",
+                    source.name,
+                    len(discovered),
+                    before_count,
+                )
+            if source.exclude_title_patterns:
+                before_count = len(discovered)
+                discovered = _apply_source_title_filters(
+                    Source(
+                        source.name,
+                        source.url,
+                        exclude_title_patterns=source.exclude_title_patterns,
+                    ),
+                    discovered,
+                )
+                LOG.info(
+                    "來源標題排除規則：%s，保留 %d/%d 篇候選文章",
                     source.name,
                     len(discovered),
                     before_count,
@@ -83,13 +153,7 @@ def run(run_date: date, dry_run: bool = False) -> int:
             ]
             enriched = [enrich_article(article) for article in candidates]
             articles = filter_and_dedupe(enriched, start_date, end_date)
-            unique_articles = []
-            from .scraper import normalize_url
-            for article in articles:
-                key = normalize_url(article.canonical_url or article.url)
-                if key not in seen_run_urls:
-                    seen_run_urls.add(key)
-                    unique_articles.append(article)
+            unique_articles = _dedupe_run_articles(articles, seen_run_urls, seen_run_titles)
             grouped.append((source, unique_articles))
             LOG.info("來源完成：%s，區間內 %d 篇", source.name, len(unique_articles))
         except Exception as exc:

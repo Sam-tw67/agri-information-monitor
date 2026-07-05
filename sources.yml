@@ -8,17 +8,31 @@ sources:
     url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss
     notion_heading: 花蓮農改場－最新消息
     enabled: true
+    exclude_title_patterns:
+      - '協助.*公告'
+      - 'AXIS|數位領袖班'
+      - '職缺|徵才|約用人員|約僱人員|資格審查|合格名單|錄取人員名單|遴選|甄選結果|移撥|標售|招標'
+      - '農業天然災害救助辦法'
+      - '租稅|稅務|繪畫比賽|夏令營'
 
   - website: 花蓮區農業改良場近期活動
     url: https://www.hdares.gov.tw/api.php?func=activity&format=rss
     notion_heading: 花蓮農改場－近期活動
     enabled: true
+    exclude_title_patterns:
+      - '文旦中果期栽培管理暨病蟲害防治技術講習會'
+      - '食農教育宣導人員基礎培訓'
+      - '地方說明會'
 
   - website: 桃園區農業改良場活動訊息
     url: https://www.tydares.gov.tw/theme_list.php?theme=activity&sub_theme=
     notion_heading: 桃園農改場－活動訊息
     enabled: true
     parser: dares_html_list
+    exclude_title_patterns:
+      - '開放參觀日|成果特展|家政'
+      - '省工高效及碳匯農機補助'
+      - '延期|另行通知'
 
   - website: 苗栗區農業改良場農業新聞
     url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
@@ -31,21 +45,40 @@ sources:
     notion_heading: 苗栗農改場－最新消息
     enabled: true
     parser: dares_html_list
-
-  - website: 台中區農業改良場最新消息
-    url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss
-    notion_heading: 台中農改場－最新消息
-    enabled: true
+    exclude_title_patterns:
+      - '職缺|徵才|約用人員|約僱人員|資格審查|合格名單|錄取人員名單|遴選|甄選結果|移撥|標售|招標'
 
   - website: 台中區農業改良場新聞資訊
     url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss
     notion_heading: 台中農改場－新聞資訊
     enabled: true
+    exclude_title_patterns:
+      - '協助.*公告'
+      - '職缺|徵才|約用人員|約僱人員|資格審查|合格名單|錄取人員名單|遴選|甄選結果|移撥|標售|招標'
+      - '會議活動排程表'
+      - 'AXIS|數位領袖班'
+      - '業界參與補助|補助公告|補助實施計畫'
+
+  - website: 台中區農業改良場最新消息
+    url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss
+    notion_heading: 台中農改場－最新消息
+    enabled: true
+    exclude_title_patterns:
+      - '協助.*公告'
+      - '職缺|徵才|約用人員|約僱人員|資格審查|合格名單|錄取人員名單|遴選|甄選結果|移撥|標售|招標'
+      - '會議活動排程表'
+      - 'AXIS|數位領袖班'
+      - '業界參與補助|補助公告|補助實施計畫'
 
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
     notion_heading: 上下游
     enabled: true
+    exclude_title_patterns:
+      - '營養午餐|午餐法'
+      - '連署|透明餐桌|原料來源標示'
+      - '餐桌解密|冰淇淋'
+      - '清酒米'
 
   - website: 農藥資訊服務網
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
