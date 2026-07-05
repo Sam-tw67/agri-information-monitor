@@ -8,6 +8,7 @@ from agri_monitor.dates import monitoring_window, page_title
 from agri_monitor.models import AcriSyncResult, Article, Source
 from agri_monitor.notion import NotionClient, build_blocks
 from agri_monitor.scraper import (
+    _dares_html_list_articles,
     _feed_articles,
     _fda_news_articles,
     _html_candidates,
@@ -159,6 +160,42 @@ def test_hdares_sources_are_official_rss_feeds():
     ]
 
 
+def test_new_dares_sources_are_configured_for_daily_monitoring():
+    sources = read_sources("sources.yml")
+    selected = [
+        (source.name, source.url, source.parser)
+        for source in sources
+        if source.name.startswith(("桃園農改場", "苗栗農改場", "台中農改場"))
+    ]
+    assert selected == [
+        (
+            "桃園農改場－活動訊息",
+            "https://www.tydares.gov.tw/theme_list.php?theme=activity&sub_theme=",
+            "dares_html_list",
+        ),
+        (
+            "苗栗農改場－農業新聞",
+            "https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news",
+            "dares_html_list",
+        ),
+        (
+            "苗栗農改場－最新消息",
+            "https://www.mdares.gov.tw/theme_list.php?theme=hotnews_ws",
+            "dares_html_list",
+        ),
+        (
+            "台中農改場－最新消息",
+            "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
+            "generic",
+        ),
+        (
+            "台中農改場－新聞資訊",
+            "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss",
+            "generic",
+        ),
+    ]
+
+
 def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
     monkeypatch.setenv("NOTION_DATABASE_ID", "monitor-db")
@@ -220,6 +257,37 @@ def test_feed_parser_extracts_only_title_url_and_date():
             "https://www.hdares.gov.tw/theme_data.php?id=1",
             date(2026, 6, 21),
         )
+    ]
+
+
+def test_dares_html_list_parser_extracts_roc_dates_titles_and_urls():
+    html = """
+    <div class="trs">
+      <div class="tds"><span class="color_green">115-06-24</span></div>
+      <div class="tds">
+        <a href="theme_data.php?theme=activity&amp;id=1" title="北部地區作物關鍵害物防治技術與產業應用研討會" class="links">
+          北部地區作物關鍵害物防治技術與產業應用研討會
+        </a>
+      </div>
+    </div>
+    <a href="/theme_data.php?theme=hotnews_ws&amp;id=2" target="_self" title="嚴正聲明：本場無販售農產品">
+      <div class="date">115-05-09</div>
+      <div class="txt">嚴正聲明：本場無販售農產品</div>
+    </a>
+    <a href="/theme_list.php?theme=news&amp;sub_theme=agri_news">了解更多</a>
+    """
+    articles = _dares_html_list_articles(html, "https://www.tydares.gov.tw/theme_list.php?theme=activity")
+    assert articles == [
+        Article(
+            "北部地區作物關鍵害物防治技術與產業應用研討會",
+            "https://www.tydares.gov.tw/theme_data.php?theme=activity&id=1",
+            date(2026, 6, 24),
+        ),
+        Article(
+            "嚴正聲明：本場無販售農產品",
+            "https://www.tydares.gov.tw/theme_data.php?theme=hotnews_ws&id=2",
+            date(2026, 5, 9),
+        ),
     ]
 
 

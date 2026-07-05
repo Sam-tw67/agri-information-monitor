@@ -14,6 +14,34 @@ sources:
     notion_heading: 花蓮農改場－近期活動
     enabled: true
 
+  - website: 桃園區農業改良場活動訊息
+    url: https://www.tydares.gov.tw/theme_list.php?theme=activity&sub_theme=
+    notion_heading: 桃園農改場－活動訊息
+    enabled: true
+    parser: dares_html_list
+
+  - website: 苗栗區農業改良場農業新聞
+    url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
+    notion_heading: 苗栗農改場－農業新聞
+    enabled: true
+    parser: dares_html_list
+
+  - website: 苗栗區農業改良場最新消息
+    url: https://www.mdares.gov.tw/theme_list.php?theme=hotnews_ws
+    notion_heading: 苗栗農改場－最新消息
+    enabled: true
+    parser: dares_html_list
+
+  - website: 台中區農業改良場最新消息
+    url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss
+    notion_heading: 台中農改場－最新消息
+    enabled: true
+
+  - website: 台中區農業改良場新聞資訊
+    url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss
+    notion_heading: 台中農改場－新聞資訊
+    enabled: true
+
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
     notion_heading: 上下游

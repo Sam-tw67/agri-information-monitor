@@ -19,6 +19,7 @@ DATE_META_KEYS = {
     "article:published_time", "datepublished", "date", "publishdate", "pubdate",
     "publication_date", "dc.date", "dc.date.issued", "sailthru.date",
 }
+ROC_DATE_PATTERN = re.compile(r"(?<!\d)(\d{2,3})[/-](\d{1,2})[/-](\d{1,2})(?!\d)")
 
 
 class SourceFetchError(RuntimeError):
@@ -48,13 +49,21 @@ def normalize_url(url: str) -> str:
 def _parse_date(value: object) -> date | None:
     if not value:
         return None
+    text = str(value).strip()
+    roc_match = ROC_DATE_PATTERN.search(text)
+    if roc_match:
+        year, month, day = (int(part) for part in roc_match.groups())
+        try:
+            return date(year + 1911, month, day)
+        except ValueError:
+            return None
     try:
-        if isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value.strip()):
-            return date.fromisoformat(value.strip())
-        return date_parser.parse(str(value)).date()
+        if isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+            return date.fromisoformat(text)
+        return date_parser.parse(text).date()
     except (ValueError, TypeError, OverflowError):
         try:
-            return parsedate_to_datetime(str(value)).date()
+            return parsedate_to_datetime(text).date()
         except (ValueError, TypeError, OverflowError):
             return None
 
@@ -175,6 +184,49 @@ def _html_candidates(html: str, base_url: str) -> list[Article]:
     return candidates
 
 
+def _text_from_first(node, selector: str) -> str:
+    match = node.select_one(selector)
+    return match.get_text(" ", strip=True) if match else ""
+
+
+def _dares_date_near_link(link) -> date | None:
+    time_tag = link.find("time")
+    if time_tag:
+        published = _parse_date(time_tag.get("datetime") or time_tag.get_text(" ", strip=True))
+        if published:
+            return published
+    for node in [link, *link.find_parents(["li", "tr", "div"], limit=5)]:
+        for date_node in node.select(".date, .published, .time, .color_green"):
+            published = _parse_date(date_node.get_text(" ", strip=True))
+            if published:
+                return published
+        published = _parse_date(node.get_text(" ", strip=True))
+        if published:
+            return published
+    return None
+
+
+def _dares_html_list_articles(html: str, base_url: str) -> list[Article]:
+    soup = BeautifulSoup(html, "html.parser")
+    articles: list[Article] = []
+    seen: set[str] = set()
+    for link in soup.select('a[href*="theme_data.php"]'):
+        href = str(link.get("href") or "")
+        url = urljoin(base_url, href)
+        if urlsplit(url).scheme not in {"http", "https"}:
+            continue
+        title = str(link.get("title") or _text_from_first(link, ".txt") or link.get_text(" ", strip=True)).strip()
+        title = ROC_DATE_PATTERN.sub("", title).strip()
+        if len(title) < 4:
+            continue
+        normalized = normalize_url(url)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        articles.append(Article(title, url, _dares_date_near_link(link)))
+    return articles
+
+
 def _pesticide_news_articles(html: str, base_url: str) -> list[Article]:
     soup = BeautifulSoup(html, "html.parser")
     articles = []
@@ -222,6 +274,13 @@ def fetch_source(source: Source) -> list[Article]:
     except requests.RequestException as exc:
         raise SourceFetchError(f"無法讀取 {request_url}：{exc}") from exc
     content_type = response.headers.get("content-type", "").lower()
+    if source.parser == "dares_html_list":
+        articles = _dares_html_list_articles(response.text, response.url)
+        if not articles:
+            raise SourceFetchError(
+                f"農改場清單頁沒有解析到任何標題連結：{request_url}"
+            )
+        return articles
     if source.parser == "fda_news_table":
         articles = _fda_news_articles(response.text, response.url)
         if not articles:

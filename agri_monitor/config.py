@@ -50,7 +50,7 @@ def read_sources(path: str | Path) -> list[Source]:
                 f"sources 第 {index} 筆標題規則不是有效正規表示式：{exc}"
             ) from exc
         parser = str(item.get("parser") or "generic").strip()
-        if parser not in {"generic", "fda_news_table"}:
+        if parser not in {"generic", "fda_news_table", "dares_html_list"}:
             raise SourceConfigError(
                 f"sources 第 {index} 筆 parser 不支援：{parser}"
             )
