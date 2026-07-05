@@ -53,19 +53,19 @@ def test_explicit_data_source_id_skips_database_discovery(monkeypatch):
 
 def test_find_page_queries_data_source(monkeypatch):
     client, calls = make_client(monkeypatch)
-    assert client.find_page("weekly-title") is None
+    assert client.find_page("daily-title") is None
     method, path, kwargs = calls[-1]
     assert method == "POST"
     assert path == "/data_sources/data-source-id/query"
     assert kwargs["json"]["filter"] == {
         "property": "Name",
-        "title": {"equals": "weekly-title"},
+        "title": {"equals": "daily-title"},
     }
 
 
 def test_create_page_uses_data_source_parent_and_unread_status(monkeypatch):
     client, calls = make_client(monkeypatch)
-    assert client.create_page("weekly-title", []) == "new-page-id"
+    assert client.create_page("daily-title", []) == "new-page-id"
     method, path, kwargs = calls[-1]
     assert method == "POST"
     assert path == "/pages"

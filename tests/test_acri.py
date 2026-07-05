@@ -98,7 +98,7 @@ def test_acri_incremental_sync_skips_existing_numbers_and_creates_missing(monkey
     assert result.duplicate_numbers == ["000001"]
 
 
-def test_acri_partial_failure_keeps_successes_for_weekly_report():
+def test_acri_partial_failure_keeps_successes_for_monitor_page():
     entries = [
         AcriEntry("000001", "農藥管理", date(2026, 6, 16), "第一題", "https://a/1"),
         AcriEntry("000002", "食品安全", date(2026, 6, 17), "第二題", "https://a/2"),
@@ -211,7 +211,7 @@ def test_acri_new_category_is_added_without_removing_existing_options(monkeypatc
     }
 
 
-def test_acri_weekly_entry_is_only_linked_title():
+def test_acri_monitor_entry_is_only_linked_title():
     entry = AcriEntry("000001", "農藥管理", date(2026, 6, 16), "第一題", "https://a/1")
     from agri_monitor.models import AcriCreatedEntry
 

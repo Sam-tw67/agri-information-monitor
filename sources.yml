@@ -1,4 +1,19 @@
 sources:
+  - website: 花蓮區農業改良場本場新聞
+    url: https://www.hdares.gov.tw/api.php?func=news&format=rss
+    notion_heading: 花蓮農改場－本場新聞
+    enabled: true
+
+  - website: 花蓮區農業改良場最新消息
+    url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss
+    notion_heading: 花蓮農改場－最新消息
+    enabled: true
+
+  - website: 花蓮區農業改良場近期活動
+    url: https://www.hdares.gov.tw/api.php?func=activity&format=rss
+    notion_heading: 花蓮農改場－近期活動
+    enabled: true
+
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
     notion_heading: 上下游

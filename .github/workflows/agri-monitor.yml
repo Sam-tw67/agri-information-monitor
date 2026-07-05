@@ -2,8 +2,8 @@ name: Agricultural information monitor
 
 on:
   schedule:
-    # 00:00 UTC = Monday 08:00 Asia/Taipei (UTC+8, no DST)
-    - cron: "0 0 * * 1"
+    # 00:00 UTC = 08:00 Asia/Taipei (UTC+8, no DST)
+    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: agri-monitor-weekly
+  group: agri-monitor-daily
   cancel-in-progress: false
 
 jobs:

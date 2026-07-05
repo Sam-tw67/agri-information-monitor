@@ -45,7 +45,7 @@ def run(run_date: date, dry_run: bool = False) -> int:
         os.getenv("NOTION_DATA_SOURCE_ID", "").strip(),
     )
     client.validate_target()
-    LOG.info("週報 Notion 身分、data source 權限與必要欄位驗證完成")
+    LOG.info("Notion 身分、data source 權限與必要欄位驗證完成")
     grouped = []
     failures = 0
     seen_run_urls: set[str] = set()
@@ -142,14 +142,14 @@ def run(run_date: date, dry_run: bool = False) -> int:
     )
     if acri_result.error:
         raise RuntimeError(
-            "ACRI 同步失敗；週報已保留成功項目與錯誤內容，工作流程標記失敗"
+            "ACRI 同步失敗；Notion 頁面已保留成功項目與錯誤內容，工作流程標記失敗"
         )
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
-    parser = argparse.ArgumentParser(description="每週農業資訊監控")
+    parser = argparse.ArgumentParser(description="每日農業資訊監控")
     parser.add_argument("--dry-run", action="store_true", help="不寫入 Notion")
     parser.add_argument("--run-date", type=date.fromisoformat, help="執行日期 YYYY-MM-DD；預設為設定時區的今天")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])

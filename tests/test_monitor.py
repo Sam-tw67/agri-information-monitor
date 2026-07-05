@@ -8,6 +8,7 @@ from agri_monitor.dates import monitoring_window, page_title
 from agri_monitor.models import AcriSyncResult, Article, Source
 from agri_monitor.notion import NotionClient, build_blocks
 from agri_monitor.scraper import (
+    _feed_articles,
     _fda_news_articles,
     _html_candidates,
     _pesticide_news_articles,
@@ -15,8 +16,8 @@ from agri_monitor.scraper import (
 )
 
 
-def test_monitoring_window_is_previous_seven_calendar_days():
-    assert monitoring_window(date(2026, 6, 22)) == (date(2026, 6, 15), date(2026, 6, 21))
+def test_monitoring_window_is_previous_calendar_day():
+    assert monitoring_window(date(2026, 6, 22)) == (date(2026, 6, 21), date(2026, 6, 21))
 
 
 def test_filter_is_inclusive_and_excludes_outside_dates():
@@ -50,21 +51,21 @@ def test_url_deduplication_uses_normalized_or_canonical_url():
 
 
 def test_page_title_exact_format():
-    assert page_title(date(2026, 6, 15), date(2026, 6, 21)) == (
-        "農業資訊監控排程任務 (上次:2026-06-15/ 本次:2026-06-21)"
+    assert page_title(date(2026, 6, 21), date(2026, 6, 21)) == (
+        "農業資訊每日監控 (日期:2026-06-21)"
     )
 
 
 def test_notion_blocks_only_contain_linked_title_not_body_or_summary():
     blocks = build_blocks(
-        [(Source("來源 A", "https://source.test"), [Article("文章標題", "https://example.com/a", date(2026, 6, 20))])]
+        [(Source("來源 A", "https://source.test"), [Article("文章標題", "https://example.com/a", date(2026, 6, 21))])]
     )
     item = blocks[1]["bulleted_list_item"]["rich_text"][0]
     assert item["text"] == {"content": "文章標題", "link": {"url": "https://example.com/a"}}
     serialized = str(blocks)
     assert "summary" not in serialized.lower()
     assert "body" not in serialized.lower()
-    assert "2026-06-20" not in serialized
+    assert "2026-06-21" not in serialized
 
 
 def test_upsert_updates_existing_page_and_preserves_status(monkeypatch):
@@ -83,7 +84,7 @@ def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
     monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
-    monkeypatch.setattr(app, "fetch_source", lambda source: [Article("T", "https://article.test", date(2026, 6, 20))])
+    monkeypatch.setattr(app, "fetch_source", lambda source: [Article("T", "https://article.test", date(2026, 6, 21))])
     monkeypatch.setattr(app, "enrich_article", lambda article: article)
     clients = []
 
@@ -105,7 +106,7 @@ def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
     )
     assert app.run(date(2026, 6, 22), dry_run=True) == 0
     output = capsys.readouterr().out
-    assert "農業資訊監控排程任務 (上次:2026-06-15/ 本次:2026-06-21)" in output
+    assert "農業資訊每日監控 (日期:2026-06-21)" in output
     assert "articles=1" in output
     assert "acri_new=2" in output
     assert len(clients) == 2
@@ -139,16 +140,35 @@ def test_source_config_uses_urls_and_notion_headings(tmp_path):
     assert all(source.show_no_update for source in sources)
 
 
-def test_acri_failure_updates_weekly_report_then_marks_run_failed(monkeypatch):
+def test_hdares_sources_are_official_rss_feeds():
+    sources = read_sources("sources.yml")
+    hdares = [source for source in sources if source.name.startswith("花蓮農改場")]
+    assert [(source.name, source.url) for source in hdares] == [
+        (
+            "花蓮農改場－本場新聞",
+            "https://www.hdares.gov.tw/api.php?func=news&format=rss",
+        ),
+        (
+            "花蓮農改場－最新消息",
+            "https://www.hdares.gov.tw/api.php?func=hotnews&format=rss",
+        ),
+        (
+            "花蓮農改場－近期活動",
+            "https://www.hdares.gov.tw/api.php?func=activity&format=rss",
+        ),
+    ]
+
+
+def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
-    monkeypatch.setenv("NOTION_DATABASE_ID", "weekly-db")
+    monkeypatch.setenv("NOTION_DATABASE_ID", "monitor-db")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
     monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
     monkeypatch.setattr(
         app,
         "fetch_source",
-        lambda source: [Article("T", "https://article.test", date(2026, 6, 20))],
+        lambda source: [Article("T", "https://article.test", date(2026, 6, 21))],
     )
     monkeypatch.setattr(app, "enrich_article", lambda article: article)
     writes = []
@@ -176,6 +196,31 @@ def test_acri_failure_updates_weekly_report_then_marks_run_failed(monkeypatch):
         app.run(date(2026, 6, 22))
     assert len(writes) == 1
     assert "同步失敗：ACRI 測試錯誤" in str(writes[0][1])
+
+
+def test_feed_parser_extracts_only_title_url_and_date():
+    rss = """<?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0"><channel><item>
+      <title>花蓮農改場公告標題</title>
+      <link>https://www.hdares.gov.tw/theme_data.php?id=1</link>
+      <description><![CDATA[
+        <p>第一行內容</p>
+        <p>第二行 <strong>重點</strong></p>
+      ]]></description>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 +0800</pubDate>
+    </item></channel></rss>
+    """.encode("utf-8")
+    articles = _feed_articles(
+        rss,
+        "https://www.hdares.gov.tw/api.php?func=news&format=rss",
+    )
+    assert articles == [
+        Article(
+            "花蓮農改場公告標題",
+            "https://www.hdares.gov.tw/theme_data.php?id=1",
+            date(2026, 6, 21),
+        )
+    ]
 
 
 def test_phis_list_uses_time_text_and_ignores_navigation_links():

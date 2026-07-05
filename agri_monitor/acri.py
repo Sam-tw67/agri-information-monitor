@@ -23,7 +23,7 @@ class AcriScraper:
         self.timeout = timeout
         self.session = requests.Session()
         self.session.headers.update(
-            {"User-Agent": "agri-information-monitor/1.0 (+weekly public-data monitor)"}
+            {"User-Agent": "agri-information-monitor/1.0 (+daily public-data monitor)"}
         )
 
     def _fetch_page(self, page: int) -> str:
