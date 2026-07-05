@@ -127,14 +127,16 @@ def _feed_articles(content: bytes, base_url: str) -> list[Article]:
         title = str(entry.get("title") or "").strip()
         if not url or not title:
             continue
-        published = None
-        # Atom's ``updated`` is a modification time, not a publication time.
-        # Treating it as published would violate the no-date-guessing rule.
-        struct_time = entry.get("published_parsed")
-        if struct_time:
-            published = date(struct_time.tm_year, struct_time.tm_mon, struct_time.tm_mday)
+        # Preserve the publisher's local calendar date. ``published_parsed`` is
+        # normalized to UTC by feedparser, which can move +0800 midnight items
+        # to the previous date.
+        published = _parse_date(entry.get("published"))
         if not published:
-            published = _parse_date(entry.get("published"))
+            # Atom's ``updated`` is a modification time, not a publication time.
+            # Treating it as published would violate the no-date-guessing rule.
+            struct_time = entry.get("published_parsed")
+            if struct_time:
+                published = date(struct_time.tm_year, struct_time.tm_mon, struct_time.tm_mday)
         articles.append(Article(title, urljoin(base_url, url), published))
     return articles
 
