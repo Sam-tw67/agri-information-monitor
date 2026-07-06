@@ -226,3 +226,12 @@ def test_acri_monitor_entry_is_only_linked_title():
     }
     assert "000001" not in str(item)
     assert "2026-06-16" not in str(item)
+
+
+def test_acri_no_update_uses_monitor_summary_message():
+    result = AcriSyncResult(0, 0, 0, [], [])
+    blocks = build_blocks([], result)
+    serialized = str(blocks)
+    assert "以下監控項目無新增項目來源：ACRI 農藥問答集。" in serialized
+    assert "本次無新增項目。" not in serialized
+    assert all(block["type"] != "heading_2" for block in blocks)

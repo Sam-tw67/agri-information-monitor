@@ -325,6 +325,21 @@ def _rich_text(text: str, url: str | None = None) -> list[dict]:
     ]
 
 
+def _no_update_label(source_name: str) -> str:
+    label = source_name.split("－", 1)[0].strip()
+    return label.replace("農改場", "改良場")
+
+
+def _dedupe_labels(labels: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for label in labels:
+        if label and label not in seen:
+            seen.add(label)
+            result.append(label)
+    return result
+
+
 def build_blocks(
     grouped_articles: list[tuple[Source, list[Article]]],
     acri_result: AcriSyncResult | None = None,
@@ -342,25 +357,11 @@ def build_blocks(
                 },
             }
         )
+    no_update_labels: list[str] = []
     for source, articles in grouped_articles:
         if not articles:
             if source.show_no_update:
-                blocks.append(
-                    {
-                        "object": "block",
-                        "type": "heading_2",
-                        "heading_2": {"rich_text": _rich_text(source.name)},
-                    }
-                )
-                blocks.append(
-                    {
-                        "object": "block",
-                        "type": "paragraph",
-                        "paragraph": {
-                            "rich_text": _rich_text("本次無新增項目。")
-                        },
-                    }
-                )
+                no_update_labels.append(_no_update_label(source.name))
             continue
         blocks.append(
             {
@@ -380,17 +381,19 @@ def build_blocks(
                 }
             )
 
+    acri_blocks: list[dict] = []
     if acri_result is not None:
-        blocks.append(
-            {
-                "object": "block",
-                "type": "heading_2",
-                "heading_2": {"rich_text": _rich_text("ACRI 農藥問答集")},
-            }
-        )
+        if acri_result.created or acri_result.error:
+            acri_blocks.append(
+                {
+                    "object": "block",
+                    "type": "heading_2",
+                    "heading_2": {"rich_text": _rich_text("ACRI 農藥問答集")},
+                }
+            )
         if acri_result.created:
             for created in acri_result.created:
-                blocks.append(
+                acri_blocks.append(
                     {
                         "object": "block",
                         "type": "bulleted_list_item",
@@ -402,15 +405,9 @@ def build_blocks(
                     }
                 )
         elif acri_result.error is None:
-            blocks.append(
-                {
-                    "object": "block",
-                    "type": "paragraph",
-                    "paragraph": {"rich_text": _rich_text("本次無新增項目。")},
-                }
-            )
+            no_update_labels.append("ACRI 農藥問答集")
         if acri_result.error:
-            blocks.append(
+            acri_blocks.append(
                 {
                     "object": "block",
                     "type": "paragraph",
@@ -421,7 +418,7 @@ def build_blocks(
             )
         for offset in range(0, len(acri_result.duplicate_numbers), 100):
             numbers = "、".join(acri_result.duplicate_numbers[offset : offset + 100])
-            blocks.append(
+            acri_blocks.append(
                 {
                     "object": "block",
                     "type": "paragraph",
@@ -432,4 +429,18 @@ def build_blocks(
                     },
                 }
             )
+    no_update_labels = _dedupe_labels(no_update_labels)
+    if no_update_labels:
+        blocks.append(
+            {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": _rich_text(
+                        f"以下監控項目無新增項目來源：{'、'.join(no_update_labels)}。"
+                    )
+                },
+            }
+        )
+    blocks.extend(acri_blocks)
     return blocks

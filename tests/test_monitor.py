@@ -415,7 +415,7 @@ def test_latest_only_selects_newest_reliable_matching_announcement():
     assert app._latest_reliable_article("衛福部食藥署", articles).title == "最新版"
 
 
-def test_source_with_no_update_gets_heading_and_no_update_message():
+def test_source_with_no_update_gets_single_summary_message():
     source = Source(
         "衛福部食藥署",
         "https://www.fda.gov.tw/TC/news.aspx?cid=3",
@@ -423,17 +423,24 @@ def test_source_with_no_update_gets_heading_and_no_update_message():
     )
     blocks = build_blocks([(source, [])])
     assert "衛福部食藥署" in str(blocks)
-    assert "本次無新增項目。" in str(blocks)
+    assert "以下監控項目無新增項目來源：衛福部食藥署。" in str(blocks)
+    assert "本次無新增項目。" not in str(blocks)
+    assert all(block["type"] != "heading_2" for block in blocks)
 
 
-def test_all_empty_sources_show_each_no_update_message_without_global_only_text():
+def test_all_empty_sources_are_collapsed_into_one_no_update_summary():
     sources = [
+        Source("花蓮農改場－本場新聞", "https://www.hdares.gov.tw/api.php?func=news&format=rss"),
+        Source("花蓮農改場－最新消息", "https://www.hdares.gov.tw/api.php?func=hotnews&format=rss"),
+        Source("台中農改場－新聞資訊", "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss"),
         Source("上下游", "https://www.newsmarket.com.tw/"),
-        Source("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
     blocks = build_blocks([(source, []) for source in sources])
     serialized = str(blocks)
-    assert "上下游" in serialized
-    assert "植物疫情彙整表" in serialized
-    assert serialized.count("本次無新增項目。") == 2
+    assert "以下監控項目無新增項目來源：花蓮改良場、台中改良場、上下游。" in serialized
+    assert serialized.count("以下監控項目無新增項目來源") == 1
+    assert "花蓮改良場" in serialized
+    assert "花蓮農改場－本場新聞" not in serialized
+    assert "花蓮農改場－最新消息" not in serialized
+    assert "本次無新增項目。" not in serialized
     assert "本週無符合日期區間的新文章。" not in serialized
