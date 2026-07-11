@@ -3,6 +3,8 @@ sources:
     url: https://www.hdares.gov.tw/api.php?func=news&format=rss
     notion_heading: 花蓮農改場－本場新聞
     enabled: true
+    exclude_title_patterns:
+      - '酒麴|釀造班|原鄉風味|釀造尖兵'
 
   - website: 花蓮區農業改良場最新消息
     url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss

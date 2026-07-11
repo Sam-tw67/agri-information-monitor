@@ -55,6 +55,16 @@ def _filtered_titles(source_name: str, titles: list[str]) -> list[str]:
     ]
 
 
+def test_hualien_brewing_training_title_is_excluded():
+    titles = [
+        "酒麴與釀造班結訓 傳承原鄉風味培育釀造尖兵",
+        "豪雨後花蓮農改場籲請農友加強田間管理",
+    ]
+    assert _filtered_titles("花蓮農改場－本場新聞", titles) == [
+        "豪雨後花蓮農改場籲請農友加強田間管理"
+    ]
+
+
 def test_southern_dares_title_rules_keep_requested_examples_only():
     kh_titles = [
         "本場出缺技工1名，意者請洽本場秘書室",

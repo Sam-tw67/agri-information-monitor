@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 import pytest
 
@@ -55,6 +56,12 @@ def test_page_title_exact_format():
     assert page_title(date(2026, 6, 21), date(2026, 6, 21)) == (
         "農業資訊每日監控 (日期:2026-06-21)"
     )
+
+
+def test_github_schedule_skips_sunday_and_monday_runs():
+    workflow = Path(".github/workflows/agri-monitor.yml").read_text(encoding="utf-8")
+    assert 'cron: "0 0 * * 2-6"' in workflow
+    assert 'cron: "0 0 * * *"' not in workflow
 
 
 def test_notion_blocks_only_contain_linked_title_not_body_or_summary():
