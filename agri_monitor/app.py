@@ -12,8 +12,9 @@ from dotenv import load_dotenv
 from .acri import AcriScraper, sync_acri
 from .config import read_sources
 from .dates import monitoring_window, page_title
+from .email_report import build_report_email, parse_recipients, send_report_email
 from .models import AcriSyncResult, Article, Source
-from .notion import NotionClient, build_blocks
+from .notion import NotionClient
 from .scraper import enrich_article, fetch_source, filter_and_dedupe, normalize_url
 
 LOG = logging.getLogger(__name__)
@@ -92,15 +93,9 @@ def run(run_date: date, dry_run: bool = False) -> int:
     start_date, end_date = monitoring_window(run_date)
     title = page_title(start_date, end_date)
     token = _required("NOTION_TOKEN")
-    client = NotionClient(
-        token,
-        _required("NOTION_DATABASE_ID"),
-        os.getenv("NOTION_DATA_SOURCE_ID", "").strip(),
-    )
-    client.validate_target()
-    LOG.info("Notion 身分、data source 權限與必要欄位驗證完成")
     grouped = []
     failures = 0
+    source_failures: list[tuple[str, str]] = []
     seen_run_urls: set[str] = set()
     seen_run_titles: set[tuple[date | None, str, str]] = set()
     for source in sources:
@@ -158,6 +153,7 @@ def run(run_date: date, dry_run: bool = False) -> int:
             LOG.info("來源完成：%s，區間內 %d 篇", source.name, len(unique_articles))
         except Exception as exc:
             failures += 1
+            source_failures.append((source.name, str(exc)))
             LOG.error("來源失敗：%s (%s)", source.name, exc)
 
     try:
@@ -182,31 +178,51 @@ def run(run_date: date, dry_run: bool = False) -> int:
             error=str(exc),
         )
 
-    if failures == len(sources) and acri_result.error:
-        raise RuntimeError("全部一般來源與 ACRI 皆失敗；不建立 Notion page")
-
     article_count = sum(len(articles) for _, articles in grouped)
     if dry_run:
         LOG.info(
-            "DRY-RUN：預計建立或更新 page：%s；一般文章數：%d；ACRI 待新增：%d",
+            "DRY-RUN：預計報告：%s；一般文章數：%d；ACRI 待新增：%d；不寄信",
             title,
             article_count,
             acri_result.planned_count,
         )
         print(
-            f"DRY-RUN page={title} articles={article_count} "
+            f"DRY-RUN report={title} articles={article_count} "
             f"acri_new={acri_result.planned_count}"
         )
         return 1 if acri_result.error else 0
 
-    action = client.upsert(title, build_blocks(grouped, acri_result))
+    username = _required("SMTP_USERNAME")
+    recipients = parse_recipients(_required("EMAIL_TO"))
+    try:
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    except ValueError as exc:
+        raise RuntimeError("SMTP_PORT 必須是整數") from exc
+    message = build_report_email(
+        title,
+        grouped,
+        acri_result,
+        source_failures,
+        sender=username,
+        recipients=recipients,
+    )
+    send_report_email(
+        message,
+        host=os.getenv("SMTP_HOST", "smtp.gmail.com").strip() or "smtp.gmail.com",
+        port=smtp_port,
+        username=username,
+        password=_required("SMTP_APP_PASSWORD"),
+    )
     print(
-        f"Notion page {action}: {title}; articles={article_count}; "
+        f"Email sent: {title}; articles={article_count}; "
         f"acri_created={len(acri_result.created)}"
     )
+    if failures == len(sources) and acri_result.error:
+        raise RuntimeError("全部一般來源與 ACRI 皆失敗；錯誤報告已寄出")
     if acri_result.error:
         raise RuntimeError(
-            "ACRI 同步失敗；Notion 頁面已保留成功項目與錯誤內容，工作流程標記失敗"
+            "ACRI 同步失敗；專用 Notion database 已保留成功項目，"
+            "錯誤報告已寄出，工作流程標記失敗"
         )
     return 0
 
@@ -214,7 +230,11 @@ def run(run_date: date, dry_run: bool = False) -> int:
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(description="每日農業資訊監控")
-    parser.add_argument("--dry-run", action="store_true", help="不寫入 Notion")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="不寫入 Notion，也不寄送 Email",
+    )
     parser.add_argument("--run-date", type=date.fromisoformat, help="執行日期 YYYY-MM-DD；預設為設定時區的今天")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     args = parser.parse_args(argv)

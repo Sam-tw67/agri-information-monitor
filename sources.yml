@@ -1,14 +1,14 @@
 sources:
   - website: 花蓮區農業改良場本場新聞
     url: https://www.hdares.gov.tw/api.php?func=news&format=rss
-    notion_heading: 花蓮農改場－本場新聞
+    output_heading: 花蓮農改場－本場新聞
     enabled: true
     exclude_title_patterns:
       - '酒麴|釀造班|原鄉風味|釀造尖兵'
 
   - website: 花蓮區農業改良場最新消息
     url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss
-    notion_heading: 花蓮農改場－最新消息
+    output_heading: 花蓮農改場－最新消息
     enabled: true
     exclude_title_patterns:
       - '協助.*公告'
@@ -19,7 +19,7 @@ sources:
 
   - website: 花蓮區農業改良場近期活動
     url: https://www.hdares.gov.tw/api.php?func=activity&format=rss
-    notion_heading: 花蓮農改場－近期活動
+    output_heading: 花蓮農改場－近期活動
     enabled: true
     exclude_title_patterns:
       - '文旦中果期栽培管理暨病蟲害防治技術講習會'
@@ -28,7 +28,7 @@ sources:
 
   - website: 桃園區農業改良場活動訊息
     url: https://www.tydares.gov.tw/theme_list.php?theme=activity&sub_theme=
-    notion_heading: 桃園農改場－活動訊息
+    output_heading: 桃園農改場－活動訊息
     enabled: true
     parser: dares_html_list
     exclude_title_patterns:
@@ -38,13 +38,13 @@ sources:
 
   - website: 苗栗區農業改良場農業新聞
     url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
-    notion_heading: 苗栗農改場－農業新聞
+    output_heading: 苗栗農改場－農業新聞
     enabled: true
     parser: dares_html_list
 
   - website: 苗栗區農業改良場最新消息
     url: https://www.mdares.gov.tw/theme_list.php?theme=hotnews_ws
-    notion_heading: 苗栗農改場－最新消息
+    output_heading: 苗栗農改場－最新消息
     enabled: true
     parser: dares_html_list
     exclude_title_patterns:
@@ -52,7 +52,7 @@ sources:
 
   - website: 台中區農業改良場新聞資訊
     url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss
-    notion_heading: 台中農改場－新聞資訊
+    output_heading: 台中農改場－新聞資訊
     enabled: true
     exclude_title_patterns:
       - '協助.*公告'
@@ -63,7 +63,7 @@ sources:
 
   - website: 台中區農業改良場最新消息
     url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss
-    notion_heading: 台中農改場－最新消息
+    output_heading: 台中農改場－最新消息
     enabled: true
     exclude_title_patterns:
       - '協助.*公告'
@@ -74,7 +74,7 @@ sources:
 
   - website: 高雄區農業改良場公告資訊
     url: https://www.kdais.gov.tw/theme_list.php?theme=news&sub_theme=announcement
-    notion_heading: 高雄農改場－公告資訊
+    output_heading: 高雄農改場－公告資訊
     enabled: true
     parser: dares_html_list
     include_title_patterns:
@@ -89,7 +89,7 @@ sources:
 
   - website: 台南區農業改良場本場快訊
     url: https://www.tndais.gov.tw/theme_list.php?theme=news_list
-    notion_heading: 台南農改場－本場快訊
+    output_heading: 台南農改場－本場快訊
     enabled: true
     parser: dares_html_list
     include_title_patterns:
@@ -106,7 +106,7 @@ sources:
 
   - website: 台東區農業改良場新聞
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=news
-    notion_heading: 台東農改場－新聞
+    output_heading: 台東農改場－新聞
     enabled: true
     parser: dares_html_list
     include_title_patterns:
@@ -116,7 +116,7 @@ sources:
 
   - website: 台東區農業改良場活動
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=activity
-    notion_heading: 台東農改場－活動
+    output_heading: 台東農改場－活動
     enabled: false
     parser: dares_html_list
     exclude_title_patterns:
@@ -125,7 +125,7 @@ sources:
 
   - website: 台東區農業改良場公告
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=announcement
-    notion_heading: 台東農改場－公告
+    output_heading: 台東農改場－公告
     enabled: false
     parser: dares_html_list
     exclude_title_patterns:
@@ -137,13 +137,13 @@ sources:
 
   - website: 台東區農業改良場警報
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=warning
-    notion_heading: 台東農改場－警報
+    output_heading: 台東農改場－警報
     enabled: false
     parser: dares_html_list
 
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
-    notion_heading: 上下游
+    output_heading: 上下游
     enabled: true
     exclude_title_patterns:
       - '營養午餐|午餐法'
@@ -153,7 +153,7 @@ sources:
 
   - website: 農藥資訊服務網
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
-    notion_heading: 農藥與法規修正彙整表
+    output_heading: 農藥與法規修正彙整表
     enabled: true
     include_title_patterns:
       - '^公告修正「.+」農藥使用方法'
@@ -163,12 +163,12 @@ sources:
 
   - website: 疫情預警
     url: https://phis.aphia.gov.tw/list-1-102
-    notion_heading: 植物疫情彙整表
+    output_heading: 植物疫情彙整表
     enabled: true
 
   - website: 衛生福利部食品藥物管理署
     url: https://www.fda.gov.tw/TC/news.aspx?cid=3
-    notion_heading: 衛福部食藥署
+    output_heading: 衛福部食藥署
     enabled: true
     parser: fda_news_table
     query_keyword: 農藥殘留容許量標準

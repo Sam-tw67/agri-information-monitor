@@ -6,8 +6,8 @@ import pytest
 from agri_monitor import app
 from agri_monitor.config import read_sources
 from agri_monitor.dates import monitoring_window, page_title
+from agri_monitor.email_report import build_report_email
 from agri_monitor.models import AcriSyncResult, Article, Source
-from agri_monitor.notion import NotionClient, build_blocks
 from agri_monitor.scraper import (
     _dares_html_list_articles,
     _feed_articles,
@@ -86,31 +86,33 @@ def test_github_schedule_runs_monday_through_saturday_at_0700_taipei():
     assert 'cron: "0 0 * * 2-6"' not in workflow
 
 
-def test_notion_blocks_only_contain_linked_title_not_body_or_summary():
-    blocks = build_blocks(
-        [(Source("來源 A", "https://source.test"), [Article("文章標題", "https://example.com/a", date(2026, 6, 21))])]
+def test_email_only_contains_linked_title_not_body_or_summary():
+    message = build_report_email(
+        "日報",
+        [
+            (
+                Source("來源 A", "https://source.test"),
+                [Article("文章標題", "https://example.com/a", date(2026, 6, 21))],
+            )
+        ],
+        AcriSyncResult(0, 0, 0, [], []),
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
     )
-    item = blocks[1]["bulleted_list_item"]["rich_text"][0]
-    assert item["text"] == {"content": "文章標題", "link": {"url": "https://example.com/a"}}
-    serialized = str(blocks)
+    serialized = (
+        message.get_body(preferencelist=("plain",)).get_content()
+        + message.get_body(preferencelist=("html",)).get_content()
+    )
+    assert "文章標題" in serialized
+    assert "https://example.com/a" in serialized
     assert "summary" not in serialized.lower()
-    assert "body" not in serialized.lower()
+    assert "第一行內容" not in serialized
     assert "2026-06-21" not in serialized
 
 
-def test_upsert_updates_existing_page_and_preserves_status(monkeypatch):
-    client = object.__new__(NotionClient)
-    monkeypatch.setattr(client, "find_page", lambda title: {"id": "existing-page"})
-    calls = []
-    monkeypatch.setattr(client, "replace_content", lambda page_id, blocks: calls.append((page_id, blocks)))
-    monkeypatch.setattr(client, "create_page", lambda *_: pytest.fail("must not create duplicate page"))
-    assert client.upsert("same-title", [{"block": 1}]) == "updated"
-    assert calls == [("existing-page", [{"block": 1}])]
-
-
-def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
+def test_dry_run_reads_acri_notion_but_does_not_write_or_send(monkeypatch, capsys):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
-    monkeypatch.setenv("NOTION_DATABASE_ID", "db")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
     monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
@@ -122,13 +124,12 @@ def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
         def __init__(self, *args):
             clients.append(self)
 
-        def validate_target(self):
-            pass
-
-        def upsert(self, *_):
-            pytest.fail("dry-run must not write Notion")
-
     monkeypatch.setattr(app, "NotionClient", FakeClient)
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda *args, **kwargs: pytest.fail("dry-run must not send Email"),
+    )
     monkeypatch.setattr(
         app,
         "sync_acri",
@@ -139,24 +140,59 @@ def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
     assert "農業資訊每日監控 (日期:2026-06-20~2026-06-21)" in output
     assert "articles=1" in output
     assert "acri_new=2" in output
-    assert len(clients) == 2
+    assert len(clients) == 1
 
 
-def test_source_config_uses_urls_and_notion_headings(tmp_path):
+def test_formal_run_sends_email_even_when_nothing_is_new(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    monkeypatch.setattr(
+        app, "read_sources", lambda *args: [Source("花蓮農改場－本場新聞", "https://source.test")]
+    )
+    monkeypatch.setattr(app, "fetch_source", lambda source: [])
+
+    class FakeClient:
+        def __init__(self, *args):
+            pass
+
+    monkeypatch.setattr(app, "NotionClient", FakeClient)
+    monkeypatch.setattr(
+        app,
+        "sync_acri",
+        lambda *args, **kwargs: AcriSyncResult(10, 10, 0, [], []),
+    )
+    sent = []
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda message, **kwargs: sent.append((message, kwargs)),
+    )
+
+    assert app.run(date(2026, 7, 14)) == 0
+    assert len(sent) == 1
+    plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
+    assert "以下監控項目無新增項目來源：花蓮改良場、ACRI 農藥問答集。" in plain
+
+
+def test_source_config_uses_urls_and_output_headings(tmp_path):
     config = tmp_path / "sources.yml"
     config.write_text(
         """sources:
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
-    notion_heading: 上下游
+    output_heading: 上下游
     enabled: true
   - website: 農藥資訊服務網
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
-    notion_heading: 農藥與法規修正彙整表
+    output_heading: 農藥與法規修正彙整表
     enabled: true
   - website: 疫情預警
     url: https://phis.aphia.gov.tw/list-1-102
-    notion_heading: 植物疫情彙整表
+    output_heading: 植物疫情彙整表
     enabled: true
 """,
         encoding="utf-8",
@@ -291,11 +327,13 @@ def test_run_level_dedupe_skips_same_day_same_site_same_title():
     assert app._dedupe_run_articles(articles, set(), set()) == [articles[0], articles[2]]
 
 
-def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):
+def test_acri_failure_sends_error_email_then_marks_run_failed(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
-    monkeypatch.setenv("NOTION_DATABASE_ID", "monitor-db")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
     monkeypatch.setattr(app, "read_sources", lambda *args: [Source("A", "https://source.test")])
     monkeypatch.setattr(
         app,
@@ -303,18 +341,10 @@ def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):
         lambda source: [Article("T", "https://article.test", date(2026, 6, 21))],
     )
     monkeypatch.setattr(app, "enrich_article", lambda article: article)
-    writes = []
 
     class FakeClient:
         def __init__(self, token, database_id, data_source_id=""):
             self.database_id = database_id
-
-        def validate_target(self):
-            pass
-
-        def upsert(self, title, blocks):
-            writes.append((title, blocks))
-            return "updated"
 
     monkeypatch.setattr(app, "NotionClient", FakeClient)
     monkeypatch.setattr(
@@ -324,10 +354,17 @@ def test_acri_failure_updates_monitor_page_then_marks_run_failed(monkeypatch):
             0, 0, 0, [], [], error="ACRI 測試錯誤"
         ),
     )
+    sent = []
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda message, **kwargs: sent.append((message, kwargs)),
+    )
     with pytest.raises(RuntimeError, match="ACRI 同步失敗"):
         app.run(date(2026, 6, 22))
-    assert len(writes) == 1
-    assert "同步失敗：ACRI 測試錯誤" in str(writes[0][1])
+    assert len(sent) == 1
+    plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
+    assert "ACRI 同步失敗：ACRI 測試錯誤" in plain
 
 
 def test_feed_parser_extracts_only_title_url_and_date():
@@ -450,11 +487,17 @@ def test_source_with_no_update_gets_single_summary_message():
         "https://www.fda.gov.tw/TC/news.aspx?cid=3",
         show_no_update=True,
     )
-    blocks = build_blocks([(source, [])])
-    assert "衛福部食藥署" in str(blocks)
-    assert "以下監控項目無新增項目來源：衛福部食藥署。" in str(blocks)
-    assert "本次無新增項目。" not in str(blocks)
-    assert all(block["type"] != "heading_2" for block in blocks)
+    message = build_report_email(
+        "日報",
+        [(source, [])],
+        AcriSyncResult(0, 0, 0, [], []),
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    plain = message.get_body(preferencelist=("plain",)).get_content()
+    assert "以下監控項目無新增項目來源：衛福部食藥署、ACRI 農藥問答集。" in plain
+    assert "本次無新增項目。" not in plain
 
 
 def test_all_empty_sources_are_collapsed_into_one_no_update_summary():
@@ -464,9 +507,16 @@ def test_all_empty_sources_are_collapsed_into_one_no_update_summary():
         Source("台中農改場－新聞資訊", "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss"),
         Source("上下游", "https://www.newsmarket.com.tw/"),
     ]
-    blocks = build_blocks([(source, []) for source in sources])
-    serialized = str(blocks)
-    assert "以下監控項目無新增項目來源：花蓮改良場、台中改良場、上下游。" in serialized
+    message = build_report_email(
+        "日報",
+        [(source, []) for source in sources],
+        AcriSyncResult(0, 0, 0, [], []),
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    serialized = message.get_body(preferencelist=("plain",)).get_content()
+    assert "以下監控項目無新增項目來源：花蓮改良場、台中改良場、上下游、ACRI 農藥問答集。" in serialized
     assert serialized.count("以下監控項目無新增項目來源") == 1
     assert "花蓮改良場" in serialized
     assert "花蓮農改場－本場新聞" not in serialized

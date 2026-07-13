@@ -1,11 +1,11 @@
 # 農業資訊監控排程任務
 
-週一到週六台灣時間 07:00 由 GitHub Actions 執行，關機後仍會運作。任務包含兩部分：
+週一到週六台灣時間 07:00 由 GitHub Actions 執行，本機關機後仍會運作。任務包含兩部分：
 
-1. 擷取一般農業資訊來源指定日期區間的文章：週一擷取上週六、週日，週二至週六擷取前一天，並建立或更新一筆「農業資訊每日監控」頁面。
-2. 掃描 ACRI 農藥問答集全部分頁，以六碼 `編號` 比對專用 Notion database，只新增尚不存在的問答，並把本次新增項目連結放進同一筆監控頁面。
+1. 擷取一般農業資訊來源指定日期區間的文章，套用來源專屬標題篩選與去重後，將標題與原始 URL 寄至 Email。
+2. 掃描 ACRI 農藥問答集全部分頁，以六碼 `編號` 比對專用 Notion database，只新增尚不存在的問答，並將本次新增項目的 Notion 連結放入同一封 Email。
 
-程式不保存文章正文、摘要、圖片、作者或標籤。一般來源只處理標題、原始 URL 及日期；ACRI 只處理編號、類別、日期、問題標題及原始明細 URL。
+一般監控結果不再寫入 Notion。程式不保存文章正文、摘要、圖片、作者或標籤；一般來源只處理標題、原始 URL 及日期。
 
 ## 監控來源
 
@@ -15,48 +15,42 @@
 sources:
   - website: 上下游新聞
     url: https://www.newsmarket.com.tw/
-    notion_heading: 上下游
+    output_heading: 上下游
     enabled: true
     include_title_patterns: []
 ```
 
 - `url`：實際監控位置。
-- `notion_heading`：監控頁面中的二級標題。
+- `output_heading`：Email 中的來源標題。舊的 `notion_heading` 仍可讀取，但新設定應使用 `output_heading`。
 - `enabled`：只有布林值 `true` 才會執行。
 - `include_title_patterns`：選填的標題正規表示式白名單。
+- `exclude_title_patterns`：選填的標題正規表示式排除清單。
 - `show_no_update`：選填，預設為 `true`；該來源當日 0 筆時會彙整到「以下監控項目無新增項目來源」段落。
 
-花蓮區農業改良場目前使用三個官方 RSS 來源：
+花蓮區農業改良場使用本場新聞、最新消息與近期活動三個官方 RSS。其他來源與所有排除規則記錄在 `sources.yml`。
 
-- `https://www.hdares.gov.tw/api.php?func=news&format=rss`：本場新聞
-- `https://www.hdares.gov.tw/api.php?func=hotnews&format=rss`：最新消息
-- `https://www.hdares.gov.tw/api.php?func=activity&format=rss`：近期活動
+農藥資訊服務網只收錄指定的農藥使用方法公告與「更新通知」；代噴人員與空中施作代噴人員公告不納入。衛福部食藥署只查詢標題含「農藥殘留容許量標準」的最新一筆公告。
 
-農藥資訊服務網目前只收錄：公告修正農藥使用方法、公告農藥使用方法、預先通知公告農藥使用方法，以及標題以「更新通知」結尾的公告。代噴人員與空中施作代噴人員公告不會納入。
+## ACRI Notion 同步
 
-所有一般來源當日 0 筆時，監控頁面不會逐一建立空段落，會彙整為一行「以下監控項目無新增項目來源：...」。
-
-衛福部食藥署來源只查詢標題含「農藥殘留容許量標準」的公告，並只保留發布日期最新的一筆。最新版若發布於本次日期區間內，監控頁面在「衛福部食藥署」段落列出可點擊標題；不在區間內則併入無新增來源彙整。目前已讀基準為 `id=31518`（2026-04-21），不會因新增監控設定而回填為當日更新。
-
-ACRI 來源由 `ACRI_SOURCE_URL` 指定，預設為 `https://mbox.acri.gov.tw/TA02.asp`。程式每次動態讀取最後頁碼並掃描全站，不採固定頁數，也不受每日監控日期區間限制。
-
-## Notion 目標
-
-監控頁面 database：
-
-- Database ID：`34435800664b80e0917dcd7c0535732c`
-- 必要欄位：`Name`（title）、`Status`（status 或 select，含 `Unread`）
-
-ACRI 專用 database：
-
+- 來源：`https://mbox.acri.gov.tw/TA02.asp`
 - Database ID：`e2c49f31c2424e9db4b37cb662e079ff`
 - 必要欄位：`問題`（title）、`日期`（date）、`編號`（text）、`類別`（select）
 
-ACRI 的 `問題` 標題連回原始 ACRI 明細頁；監控頁面中的 ACRI 標題則連到新建的 Notion 項目。若來源出現新的非空白類別，程式會保留既有選項並自動加入新選項。來源類別空白時仍會新增該筆，Notion 類別維持空白。
+ACRI 每次動態讀取最後頁碼並掃描全站，不受每日監控日期區間限制。同一編號已存在時不重複新增；新類別會自動加入 Notion select 選項。
 
-同一 ACRI 編號已存在時不重複新增；若 database 原本已有重複編號，任務保留原資料、略過新增，並在 log 與監控頁面警告。首次正式執行會回填所有缺少的歷史編號。
+## GitHub Secrets
 
-## 本機首次設定
+在 Repository 的 **Settings → Secrets and variables → Actions** 建立：
+
+- `NOTION_TOKEN`：已連接 ACRI 專用 database 的 Notion integration token。
+- `SMTP_USERNAME`：Gmail 寄件帳號，例如 `david40569@gmail.com`。
+- `SMTP_APP_PASSWORD`：Google 產生的 16 位應用程式密碼，不是 Gmail 登入密碼。
+- `EMAIL_TO`：收件地址；多個收件人可以逗號或分號分隔。
+
+工作流程固定使用 `smtp.gmail.com:587` 與 STARTTLS。機密值不得寫入程式、`.env.example` 或 log。
+
+## 執行與排程
 
 需求為 Python 3.11 以上（GitHub Actions 使用 3.12）：
 
@@ -65,60 +59,31 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
-```
-
-編輯 `.env`，只需填入機密：
-
-```dotenv
-NOTION_TOKEN=你的_Notion_Internal_Integration_Access_Token
-```
-
-同一個 integration 必須連接監控頁面與 ACRI 兩個 database。其他 ID 與 URL 已在 `.env.example` 提供。`.env` 已被 `.gitignore` 排除，不得提交 token、cookie 或憑證。
-
-執行測試：
-
-```powershell
 python -m pytest -q
 ```
 
-Dry-run 會實際讀取來源及 Notion 既有編號，但不建立頁面、不修改欄位，也不更新監控頁面：
+Dry-run 會讀取來源與 ACRI Notion 既有編號，但不新增 ACRI、不寄 Email：
 
 ```powershell
 python -m agri_monitor --dry-run
-python -m agri_monitor --dry-run --run-date 2026-06-22
+python -m agri_monitor --dry-run --run-date 2026-07-13
 ```
 
-正式執行：
-
-```powershell
-python -m agri_monitor
-```
-
-## GitHub Actions
-
-Repository 的 **Settings → Secrets and variables → Actions** 只需一個 secret：
-
-- `NOTION_TOKEN`：已連接兩個目標 database 的 Notion integration access token。
-
-工作流程 `.github/workflows/agri-monitor.yml` 使用：
+工作流程使用：
 
 ```yaml
 schedule:
   - cron: "0 23 * * 0-5"
 ```
 
-這是週日到週五 23:00 UTC；台灣全年 UTC+8，因此實際為 `Asia/Taipei` 週一到週六 07:00。週一抓上週六、週日資料，週二至週六抓前一天資料；週日不自動啟動。GitHub 伺服器負責執行，本機可關機。也可在 Actions 頁面手動 Run workflow，並選擇 dry-run。
+這是週日到週五 23:00 UTC，即台灣週一到週六 07:00。週一擷取上週六、週日資料；週二至週六擷取前一天；週日不自動執行。
 
-## 日報與重跑規則
+## Email 與失敗處理
 
-週一執行時，`start_date` 為前 2 天（週六），`end_date` 為前 1 天（週日）；週二至週六執行時，`start_date` 與 `end_date` 都是前 1 天。日期區間首尾皆納入。例如 2026-07-13（週一）執行時，標題為：
+Email 主旨包含監控日期、一般文章數與 ACRI 新增數。內文有新資料時依來源列出可點擊的標題；沒有新資料時仍寄信，並合併顯示：
 
 ```text
-農業資訊每日監控 (日期:2026-07-11~2026-07-12)
+以下監控項目無新增項目來源：花蓮改良場、台中改良場…。
 ```
 
-寫入前依完整標題查詢：不存在時建立並將 `Status` 設為 `Unread`；存在時只替換內容，保留原 Status。同一次一般文章依 canonical URL 或正規化 URL 去重；沒有可靠日期的文章會記錄 warning 並略過。
-
-一般來源與 ACRI 同步成功但沒有新項目時，監控頁面會彙整列出無新增來源。首次回填即使項目很多，也會完整列出所有本次新增標題。
-
-若 ACRI 在部分新增後失敗，成功項目會保留並寫入監控頁面，錯誤原因也會寫入監控頁面，工作流程最後以非零狀態結束；下次執行會依編號自動續跑。若全部一般來源與 ACRI 都失敗，則不建立空白監控頁面。
+單一來源抓取失敗會列於 Email，其他成功來源仍正常寄出。ACRI 部分同步失敗時，已成功新增的 Notion 項目會保留，錯誤報告寄出後 GitHub Actions 會標記失敗，下次再依編號續跑。

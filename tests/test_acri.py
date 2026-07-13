@@ -1,8 +1,9 @@
 from datetime import date
 
 from agri_monitor.acri import AcriScraper, sync_acri
+from agri_monitor.email_report import build_report_email
 from agri_monitor.models import AcriEntry, AcriSyncResult
-from agri_monitor.notion import NotionClient, build_blocks
+from agri_monitor.notion import NotionClient
 
 
 def page_html(rows: str, last_page: int = 1) -> str:
@@ -98,7 +99,7 @@ def test_acri_incremental_sync_skips_existing_numbers_and_creates_missing(monkey
     assert result.duplicate_numbers == ["000001"]
 
 
-def test_acri_partial_failure_keeps_successes_for_monitor_page():
+def test_acri_partial_failure_keeps_successes_for_email_report():
     entries = [
         AcriEntry("000001", "農藥管理", date(2026, 6, 16), "第一題", "https://a/1"),
         AcriEntry("000002", "食品安全", date(2026, 6, 17), "第二題", "https://a/2"),
@@ -126,9 +127,20 @@ def test_acri_partial_failure_keeps_successes_for_monitor_page():
     result = sync_acri(Scraper(), Client())
     assert [item.entry.number for item in result.created] == ["000001"]
     assert result.error == "第二筆失敗"
-    blocks = build_blocks([], result)
-    assert "https://notion.test/page-1" in str(blocks)
-    assert "同步失敗：第二筆失敗" in str(blocks)
+    message = build_report_email(
+        "日報",
+        [],
+        result,
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    serialized = (
+        message.get_body(preferencelist=("plain",)).get_content()
+        + message.get_body(preferencelist=("html",)).get_content()
+    )
+    assert "https://notion.test/page-1" in serialized
+    assert "ACRI 同步失敗：第二筆失敗" in serialized
 
 
 def test_acri_dry_run_never_mutates_notion():
@@ -211,27 +223,37 @@ def test_acri_new_category_is_added_without_removing_existing_options(monkeypatc
     }
 
 
-def test_acri_monitor_entry_is_only_linked_title():
+def test_acri_email_entry_is_only_linked_title():
     entry = AcriEntry("000001", "農藥管理", date(2026, 6, 16), "第一題", "https://a/1")
     from agri_monitor.models import AcriCreatedEntry
 
     result = AcriSyncResult(
         1, 0, 1, [AcriCreatedEntry(entry, "https://notion.test/page")], []
     )
-    blocks = build_blocks([], result)
-    item = next(block for block in blocks if block["type"] == "bulleted_list_item")
-    assert item["bulleted_list_item"]["rich_text"][0]["text"] == {
-        "content": "第一題",
-        "link": {"url": "https://notion.test/page"},
-    }
-    assert "000001" not in str(item)
-    assert "2026-06-16" not in str(item)
+    message = build_report_email(
+        "日報",
+        [],
+        result,
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    html = message.get_body(preferencelist=("html",)).get_content()
+    assert '<a href="https://notion.test/page">第一題</a>' in html
+    assert "000001" not in html
+    assert "2026-06-16" not in html
 
 
-def test_acri_no_update_uses_monitor_summary_message():
+def test_acri_no_update_uses_email_summary_message():
     result = AcriSyncResult(0, 0, 0, [], [])
-    blocks = build_blocks([], result)
-    serialized = str(blocks)
+    message = build_report_email(
+        "日報",
+        [],
+        result,
+        [],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    serialized = message.get_body(preferencelist=("plain",)).get_content()
     assert "以下監控項目無新增項目來源：ACRI 農藥問答集。" in serialized
     assert "本次無新增項目。" not in serialized
-    assert all(block["type"] != "heading_2" for block in blocks)

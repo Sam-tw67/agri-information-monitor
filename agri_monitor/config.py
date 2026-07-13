@@ -45,12 +45,19 @@ def read_sources(path: str | Path) -> list[Source]:
         if item.get("enabled") is not True:
             continue
         url = str(item.get("url") or "").strip()
-        heading = str(item.get("notion_heading") or item.get("website") or "").strip()
+        heading = str(
+            item.get("output_heading")
+            or item.get("notion_heading")
+            or item.get("website")
+            or ""
+        ).strip()
         parsed = urlsplit(url)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise SourceConfigError(f"sources 第 {index} 筆 URL 無效：{url or '(空白)'}")
         if not heading:
-            raise SourceConfigError(f"sources 第 {index} 筆缺少 notion_heading 或 website")
+            raise SourceConfigError(
+                f"sources 第 {index} 筆缺少 output_heading 或 website"
+            )
         include_patterns = _read_patterns(item, index, "include_title_patterns")
         exclude_patterns = _read_patterns(item, index, "exclude_title_patterns")
         parser = str(item.get("parser") or "generic").strip()
