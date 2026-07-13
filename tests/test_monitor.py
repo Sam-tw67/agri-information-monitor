@@ -136,7 +136,7 @@ def test_dry_run_reads_notion_but_does_not_write(monkeypatch, capsys):
     )
     assert app.run(date(2026, 6, 22), dry_run=True) == 0
     output = capsys.readouterr().out
-    assert "農業資訊每日監控 (日期:2026-06-21)" in output
+    assert "農業資訊每日監控 (日期:2026-06-20~2026-06-21)" in output
     assert "articles=1" in output
     assert "acri_new=2" in output
     assert len(clients) == 2
