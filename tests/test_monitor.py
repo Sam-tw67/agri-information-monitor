@@ -18,8 +18,24 @@ from agri_monitor.scraper import (
 )
 
 
-def test_monitoring_window_is_previous_calendar_day():
-    assert monitoring_window(date(2026, 6, 22)) == (date(2026, 6, 21), date(2026, 6, 21))
+def test_monday_monitoring_window_covers_saturday_and_sunday():
+    assert monitoring_window(date(2026, 7, 13)) == (date(2026, 7, 11), date(2026, 7, 12))
+
+
+@pytest.mark.parametrize(
+    ("run_date", "target_date"),
+    [
+        (date(2026, 7, 14), date(2026, 7, 13)),
+        (date(2026, 7, 15), date(2026, 7, 14)),
+        (date(2026, 7, 16), date(2026, 7, 15)),
+        (date(2026, 7, 17), date(2026, 7, 16)),
+        (date(2026, 7, 18), date(2026, 7, 17)),
+    ],
+)
+def test_tuesday_through_saturday_monitoring_window_is_previous_day(
+    run_date, target_date
+):
+    assert monitoring_window(run_date) == (target_date, target_date)
 
 
 def test_filter_is_inclusive_and_excludes_outside_dates():
@@ -58,10 +74,16 @@ def test_page_title_exact_format():
     )
 
 
-def test_github_schedule_skips_sunday_and_monday_runs():
+def test_page_title_shows_monday_date_range():
+    assert page_title(date(2026, 7, 11), date(2026, 7, 12)) == (
+        "農業資訊每日監控 (日期:2026-07-11~2026-07-12)"
+    )
+
+
+def test_github_schedule_runs_monday_through_saturday_at_0700_taipei():
     workflow = Path(".github/workflows/agri-monitor.yml").read_text(encoding="utf-8")
-    assert 'cron: "0 0 * * 2-6"' in workflow
-    assert 'cron: "0 0 * * *"' not in workflow
+    assert 'cron: "0 23 * * 0-5"' in workflow
+    assert 'cron: "0 0 * * 2-6"' not in workflow
 
 
 def test_notion_blocks_only_contain_linked_title_not_body_or_summary():

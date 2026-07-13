@@ -2,9 +2,9 @@ name: Agricultural information monitor
 
 on:
   schedule:
-    # 00:00 UTC = 08:00 Asia/Taipei (UTC+8, no DST)
-    # Tue-Sat runs cover Mon-Fri updates; official sources are treated as paused on weekends.
-    - cron: "0 0 * * 2-6"
+    # 23:00 UTC Sun-Fri = 07:00 Asia/Taipei Mon-Sat (UTC+8, no DST).
+    # Monday collects Saturday-Sunday; Tuesday-Saturday collect the previous day.
+    - cron: "0 23 * * 0-5"
   workflow_dispatch:
     inputs:
       dry_run:
