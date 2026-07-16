@@ -65,6 +65,17 @@ def test_hualien_brewing_training_title_is_excluded():
     ]
 
 
+def test_taoyuan_culture_ministry_community_award_titles_are_excluded():
+    titles = [
+        "協助文化部公告「第三屆文化部社區營造獎參選簡章」",
+        "轉知文化部辦理「第四屆社區營造獎」活動",
+        "桃園農改場辦理作物栽培管理講習會",
+    ]
+    assert _filtered_titles("桃園農改場－活動訊息", titles) == [
+        "桃園農改場辦理作物栽培管理講習會"
+    ]
+
+
 def test_southern_dares_title_rules_keep_requested_examples_only():
     kh_titles = [
         "本場出缺技工1名，意者請洽本場秘書室",

@@ -35,6 +35,7 @@ sources:
       - '開放參觀日|成果特展|家政'
       - '省工高效及碳匯農機補助'
       - '延期|另行通知'
+      - '文化部.*社區營造獎'
 
   - website: 苗栗區農業改良場農業新聞
     url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
