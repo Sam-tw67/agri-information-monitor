@@ -80,9 +80,9 @@ def test_page_title_shows_monday_date_range():
     )
 
 
-def test_github_schedule_runs_monday_through_saturday_at_0700_taipei():
+def test_github_schedule_runs_monday_through_saturday_at_0737_taipei():
     workflow = Path(".github/workflows/agri-monitor.yml").read_text(encoding="utf-8")
-    assert 'cron: "0 23 * * 0-5"' in workflow
+    assert 'cron: "37 23 * * 0-5"' in workflow
     assert 'cron: "0 0 * * 2-6"' not in workflow
 
 
