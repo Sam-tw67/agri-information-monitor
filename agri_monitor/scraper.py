@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 from datetime import date, datetime
 from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
@@ -14,6 +15,7 @@ from .models import Article, Source
 
 LOG = logging.getLogger(__name__)
 USER_AGENT = "AgriInformationMonitor/1.0 (+scheduled metadata-only monitor)"
+REQUEST_RETRY_DELAYS = (3, 10, 30)
 TRACKING_KEYS = {"fbclid", "gclid", "dclid", "mc_cid", "mc_eid", "ref", "source"}
 DATE_META_KEYS = {
     "article:published_time", "datepublished", "date", "publishdate", "pubdate",
@@ -121,9 +123,37 @@ def _normalized_meta_key(meta) -> str:
 
 
 def _get(url: str) -> requests.Response:
-    response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
-    response.raise_for_status()
-    return response
+    for attempt in range(len(REQUEST_RETRY_DELAYS) + 1):
+        try:
+            response = requests.get(
+                url,
+                headers={"User-Agent": USER_AGENT},
+                timeout=30,
+            )
+            response.raise_for_status()
+            return response
+        except requests.RequestException as exc:
+            status_code = exc.response.status_code if exc.response is not None else None
+            retryable = isinstance(
+                exc,
+                (requests.ConnectionError, requests.Timeout),
+            ) or status_code in {408, 429} or (
+                status_code is not None and 500 <= status_code < 600
+            )
+            if not retryable or attempt == len(REQUEST_RETRY_DELAYS):
+                raise
+            delay = REQUEST_RETRY_DELAYS[attempt]
+            LOG.warning(
+                "讀取暫時失敗：%s；%d 秒後重試（%d/%d）：%s",
+                url,
+                delay,
+                attempt + 1,
+                len(REQUEST_RETRY_DELAYS),
+                exc,
+            )
+            time.sleep(delay)
+
+    raise AssertionError("HTTP retry loop ended unexpectedly")
 
 
 def _feed_articles(content: bytes, base_url: str) -> list[Article]:
