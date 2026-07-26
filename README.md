@@ -14,7 +14,7 @@
 ```yaml
 sources:
   - website: 上下游新聞
-    url: https://www.newsmarket.com.tw/
+    url: https://www.newsmarket.com.tw/feed/
     output_heading: 上下游
     enabled: true
     include_title_patterns: []

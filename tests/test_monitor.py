@@ -178,12 +178,111 @@ def test_formal_run_sends_email_even_when_nothing_is_new(monkeypatch):
     assert "以下監控項目無新增項目來源：花蓮改良場、ACRI 農藥問答集。" in plain
 
 
+def test_failed_sources_are_retried_until_all_recover_then_one_recovery_email(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    sources = [
+        Source("A", "https://a.test"),
+        Source("B", "https://b.test"),
+    ]
+    monkeypatch.setattr(app, "read_sources", lambda *args: sources)
+    calls = {source.name: 0 for source in sources}
+
+    def fetch(source):
+        calls[source.name] += 1
+        if source.name == "A" and calls[source.name] == 1:
+            raise RuntimeError("temporary A failure")
+        if source.name == "B" and calls[source.name] < 3:
+            raise RuntimeError("temporary B failure")
+        return [
+            Article(
+                f"article-{source.name}",
+                f"https://article.test/{source.name}",
+                date(2026, 6, 21),
+            )
+        ]
+
+    monkeypatch.setattr(app, "fetch_source", fetch)
+    monkeypatch.setattr(app, "enrich_article", lambda article: article)
+    monkeypatch.setattr(app, "NotionClient", lambda *args: object())
+    acri_calls = []
+    monkeypatch.setattr(
+        app,
+        "sync_acri",
+        lambda *args, **kwargs: acri_calls.append(True) or AcriSyncResult(0, 0, 0, [], []),
+    )
+    pauses = []
+    monkeypatch.setattr(app.time, "sleep", lambda seconds: pauses.append(seconds))
+    sent = []
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda message, **kwargs: sent.append((message, kwargs)),
+    )
+
+    assert app.run(date(2026, 6, 22)) == 0
+    assert calls == {"A": 2, "B": 3}
+    assert pauses == [20 * 60, 20 * 60]
+    assert len(acri_calls) == 1
+    assert len(sent) == 2
+    initial_plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
+    recovery_plain = sent[1][0].get_body(preferencelist=("plain",)).get_content()
+    assert "temporary A failure" in initial_plain
+    assert "temporary B failure" in initial_plain
+    assert "已於第 2 次補抓全部成功" in recovery_plain
+    assert "article-A" in recovery_plain
+    assert "article-B" in recovery_plain
+    assert "ACRI" not in sent[1][0]["Subject"]
+
+
+def test_failed_sources_send_final_recovery_email_after_three_attempts(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    source = Source("A", "https://a.test")
+    monkeypatch.setattr(app, "read_sources", lambda *args: [source])
+    fetch_calls = []
+
+    def fetch(_source):
+        fetch_calls.append(True)
+        raise RuntimeError("still unavailable")
+
+    monkeypatch.setattr(app, "fetch_source", fetch)
+    monkeypatch.setattr(app, "NotionClient", lambda *args: object())
+    monkeypatch.setattr(
+        app, "sync_acri", lambda *args, **kwargs: AcriSyncResult(0, 0, 0, [], [])
+    )
+    pauses = []
+    monkeypatch.setattr(app.time, "sleep", lambda seconds: pauses.append(seconds))
+    sent = []
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda message, **kwargs: sent.append((message, kwargs)),
+    )
+
+    assert app.run(date(2026, 6, 22)) == 0
+    assert len(fetch_calls) == 4  # Initial run plus three recovery attempts.
+    assert pauses == [20 * 60, 20 * 60, 20 * 60]
+    assert len(sent) == 2
+    final_plain = sent[1][0].get_body(preferencelist=("plain",)).get_content()
+    assert "第 3 次補抓後仍有 1 個來源失敗" in final_plain
+    assert "still unavailable" in final_plain
+
+
 def test_source_config_uses_urls_and_output_headings(tmp_path):
     config = tmp_path / "sources.yml"
     config.write_text(
         """sources:
   - website: 上下游新聞
-    url: https://www.newsmarket.com.tw/
+    url: https://www.newsmarket.com.tw/feed/
     output_heading: 上下游
     enabled: true
   - website: 農藥資訊服務網
@@ -199,7 +298,7 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
     )
     sources = read_sources(config)
     assert [(source.name, source.url) for source in sources] == [
-        ("上下游", "https://www.newsmarket.com.tw/"),
+        ("上下游", "https://www.newsmarket.com.tw/feed/"),
         ("農藥與法規修正彙整表", "https://pesticide.aphia.gov.tw/information/Data/NewsLast"),
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
@@ -287,21 +386,27 @@ def test_source_config_reads_exclude_title_patterns():
     sources = read_sources("sources.yml")
     by_name = {source.name: source for source in sources}
     assert "協助.*公告" in by_name["台中農改場－最新消息"].exclude_title_patterns
+    assert any(
+        "錄取(?:人員)?名單" in pattern
+        for pattern in by_name["台中農改場－最新消息"].exclude_title_patterns
+    )
+    assert by_name["上下游"].url == "https://www.newsmarket.com.tw/feed/"
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
     assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
     assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
 
 
 def test_source_title_exclude_patterns_remove_unwanted_categories():
-    source = Source(
-        "台中農改場－最新消息",
-        "https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss",
-        exclude_title_patterns=("協助.*公告", "職缺|徵才|約用人員"),
+    source = next(
+        source
+        for source in read_sources("sources.yml")
+        if source.name == "台中農改場－最新消息"
     )
     articles = [
         Article("協助農業部公告115年度「AXIS－農業跨域數位領袖班」", "https://example.test/a", date(2026, 6, 22)),
         Article("公告本場農業推廣科約用人員職缺", "https://example.test/b", date(2026, 6, 25)),
         Article("豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!", "https://example.test/c", date(2026, 6, 29)),
+        Article("公告食農教育計畫助理-錄取名單", "https://example.test/d", date(2026, 6, 29)),
     ]
     assert app._apply_source_title_filters(source, articles) == [articles[2]]
 

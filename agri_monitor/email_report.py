@@ -40,6 +40,9 @@ def _report_content(
     grouped_articles: list[tuple[Source, list[Article]]],
     acri_result: AcriSyncResult,
     source_failures: list[tuple[str, str]],
+    *,
+    include_acri_status: bool,
+    notice: str | None,
 ) -> tuple[list[str], list[str]]:
     plain: list[str] = []
     html_parts: list[str] = []
@@ -62,7 +65,7 @@ def _report_content(
         )
         html_parts.append("</ul>")
 
-    if acri_result.created:
+    if include_acri_status and acri_result.created:
         plain.append("[ACRI 農藥問答集]")
         html_parts.append("<h2>ACRI 農藥問答集</h2><ul>")
         for created in acri_result.created:
@@ -76,7 +79,7 @@ def _report_content(
             )
         plain.append("")
         html_parts.append("</ul>")
-    elif acri_result.error is None:
+    elif include_acri_status and acri_result.error is None:
         no_update_labels.append("ACRI 農藥問答集")
 
     no_update_labels = _dedupe_labels(no_update_labels)
@@ -96,16 +99,20 @@ def _report_content(
         plain.append("")
         html_parts.append("</ul>")
 
-    if acri_result.error:
+    if include_acri_status and acri_result.error:
         message = f"ACRI 同步失敗：{acri_result.error}"
         plain.extend([message, ""])
         html_parts.append(f"<p><strong>{html.escape(message)}</strong></p>")
 
-    if acri_result.duplicate_numbers:
+    if include_acri_status and acri_result.duplicate_numbers:
         numbers = "、".join(acri_result.duplicate_numbers)
         message = f"ACRI 資料庫已有重複編號（本次未重複新增）：{numbers}"
         plain.extend([message, ""])
         html_parts.append(f"<p>{html.escape(message)}</p>")
+
+    if notice:
+        plain[0:0] = [notice, ""]
+        html_parts.insert(0, f"<p><strong>{html.escape(notice)}</strong></p>")
 
     return plain, html_parts
 
@@ -118,40 +125,44 @@ def build_report_email(
     *,
     sender: str,
     recipients: tuple[str, ...],
+    include_acri_status: bool = True,
+    notice: str | None = None,
 ) -> EmailMessage:
     article_count = sum(len(articles) for _, articles in grouped_articles)
     acri_count = len(acri_result.created)
     plain_content, html_content = _report_content(
-        grouped_articles, acri_result, source_failures
+        grouped_articles,
+        acri_result,
+        source_failures,
+        include_acri_status=include_acri_status,
+        notice=notice,
     )
 
     message = EmailMessage()
-    message["Subject"] = f"{report_title}｜一般 {article_count} 篇｜ACRI {acri_count} 筆"
+    subject_parts = [report_title, f"一般 {article_count} 篇"]
+    if include_acri_status:
+        subject_parts.append(f"ACRI {acri_count} 筆")
+    message["Subject"] = "｜".join(subject_parts)
     message["From"] = sender
     message["To"] = ", ".join(recipients)
-    message.set_content(
-        "\n".join(
-            [
-                report_title,
-                f"一般文章：{article_count} 篇",
-                f"ACRI 新增：{acri_count} 筆",
-                "",
-                *plain_content,
-            ]
-        ).rstrip()
-        + "\n"
-    )
+    plain_summary = [report_title, f"一般文章：{article_count} 篇"]
+    if include_acri_status:
+        plain_summary.append(f"ACRI 新增：{acri_count} 筆")
+    message.set_content("\n".join([*plain_summary, "", *plain_content]).rstrip() + "\n")
+    html_summary = f"<p>一般文章：{article_count} 篇"
+    if include_acri_status:
+        html_summary += f"<br>ACRI 新增：{acri_count} 筆"
+    html_summary += "</p>"
     message.add_alternative(
         """<!doctype html>
 <html lang="zh-Hant"><body>
 <h1>%s</h1>
-<p>一般文章：%d 篇<br>ACRI 新增：%d 筆</p>
+%s
 %s
 </body></html>"""
         % (
             html.escape(report_title),
-            article_count,
-            acri_count,
+            html_summary,
             "\n".join(html_content),
         ),
         subtype="html",
