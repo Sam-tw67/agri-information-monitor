@@ -54,6 +54,16 @@ def read_sources(path: str | Path) -> list[Source]:
         parsed = urlsplit(url)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise SourceConfigError(f"sources 第 {index} 筆 URL 無效：{url or '(空白)'}")
+        fallback_url = str(item.get("fallback_url") or "").strip()
+        if fallback_url:
+            fallback_parsed = urlsplit(fallback_url)
+            if (
+                fallback_parsed.scheme not in {"http", "https"}
+                or not fallback_parsed.netloc
+            ):
+                raise SourceConfigError(
+                    f"sources 第 {index} 筆 fallback_url 無效：{fallback_url}"
+                )
         if not heading:
             raise SourceConfigError(
                 f"sources 第 {index} 筆缺少 output_heading 或 website"
@@ -87,6 +97,7 @@ def read_sources(path: str | Path) -> list[Source]:
                 query_keyword=query_keyword,
                 latest_only=latest_only,
                 show_no_update=show_no_update,
+                fallback_url=fallback_url,
             )
         )
 

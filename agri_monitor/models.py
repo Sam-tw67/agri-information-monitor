@@ -12,6 +12,7 @@ class Source:
     query_keyword: str = ""
     latest_only: bool = False
     show_no_update: bool = True
+    fallback_url: str = ""
 
 
 @dataclass(frozen=True)

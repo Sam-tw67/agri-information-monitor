@@ -110,3 +110,32 @@ def test_wordpress_posts_source_uses_curl_and_parses_entries(monkeypatch):
         Article("測試標題", "https://www.newsmarket.com.tw/blog/1/", date(2026, 7, 30))
     ]
     assert requested_urls == [source.url]
+
+
+def test_wordpress_posts_source_uses_configured_rss_fallback_after_curl_403(monkeypatch):
+    source = Source(
+        "上下游",
+        "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30",
+        parser="wordpress_posts_json",
+        fallback_url="https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw",
+    )
+    response = _response(200, source.fallback_url)
+    response._content = b"""<?xml version=\"1.0\"?><rss><channel><item>
+      <title>\xe4\xb8\x8a\xe4\xb8\x8b\xe6\xb8\xb8\xe5\x82\x99\xe6\x8f\xb4\xe6\xa8\x99\xe9\xa1\x8c</title>
+      <link>https://news.google.com/rss/articles/example</link>
+      <pubDate>Thu, 30 Jul 2026 03:00:00 +0800</pubDate>
+    </item></channel></rss>"""
+    monkeypatch.setattr(
+        scraper,
+        "_curl_get",
+        lambda _url: (_ for _ in ()).throw(scraper.SourceFetchError("curl: (22) 403")),
+    )
+    monkeypatch.setattr(scraper, "_get", lambda _url: response)
+
+    assert scraper.fetch_source(source) == [
+        Article(
+            "上下游備援標題",
+            "https://news.google.com/rss/articles/example",
+            date(2026, 7, 30),
+        )
+    ]

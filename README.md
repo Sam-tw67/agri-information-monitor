@@ -15,6 +15,7 @@
 sources:
   - website: 上下游新聞
     url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 上下游
     enabled: true
     parser: wordpress_posts_json
@@ -27,7 +28,7 @@ sources:
 - `exclude_title_patterns`：選填的標題正規表示式排除清單。
 - `show_no_update`：選填，預設為 `true`；該來源當日 0 筆時會彙整到「以下監控項目無新增項目來源」段落。
 
-花蓮區農業改良場使用本場新聞、最新消息與近期活動三個官方 RSS；上下游使用官方 WordPress JSON 列表，並以系統 `curl` 讀取，避開 Cloudflare 對 Python HTTP 指紋的 403。每次執行只讀取各來源的列表／RSS；已有可靠發布日期的項目不會再讀取文章頁，只有缺日期的項目才補抓中繼資料。其他來源與所有排除規則記錄在 `sources.yml`。
+花蓮區農業改良場使用本場新聞、最新消息與近期活動三個官方 RSS；上下游優先使用官方 WordPress JSON 列表，若 GitHub Actions 遭來源站以 403 拒絕，才改由 Google News 的站內 RSS 備援讀取。每次執行只讀取各來源的列表／RSS；已有可靠發布日期的項目不會再讀取文章頁，只有缺日期的項目才補抓中繼資料。其他來源與所有排除規則記錄在 `sources.yml`。
 
 單一來源失敗時，系統會在寄送日報前等待 5 分鐘補抓一次；若所有來源都因網路連線錯誤而失敗，會先以 10 分鐘間隔全域重試，最多 3 次，避免 GitHub Actions 的短暫網路異常造成整批錯誤通知。
 

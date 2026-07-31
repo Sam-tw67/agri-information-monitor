@@ -343,6 +343,26 @@ def _curl_get(url: str) -> bytes:
     return completed.stdout
 
 
+def _fallback_feed_articles(source: Source, primary_error: SourceFetchError) -> list[Article]:
+    """Read a configured RSS fallback when a primary source blocks the runner."""
+    if not source.fallback_url:
+        raise primary_error
+    try:
+        response = _get(source.fallback_url)
+    except requests.RequestException as exc:
+        raise SourceFetchError(
+            f"{primary_error}；備援來源無法讀取 {source.fallback_url}：{exc}"
+        ) from exc
+
+    articles = _feed_articles(response.content, response.url)
+    if not articles:
+        raise SourceFetchError(
+            f"{primary_error}；備援來源可讀取，但找不到文章：{source.fallback_url}"
+        )
+    LOG.warning("主要來源讀取失敗，改用備援 RSS：%s", source.name)
+    return articles
+
+
 def fetch_source(source: Source) -> list[Article]:
     request_url = source.url
     if source.query_keyword:
@@ -354,10 +374,17 @@ def fetch_source(source: Source) -> list[Article]:
             (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
         )
     if source.parser == "wordpress_posts_json":
-        articles = _wordpress_posts_articles(_curl_get(request_url), request_url)
+        try:
+            content = _curl_get(request_url)
+        except SourceFetchError as exc:
+            return _fallback_feed_articles(source, exc)
+        articles = _wordpress_posts_articles(content, request_url)
         if not articles:
-            raise SourceFetchError(
-                f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
+            return _fallback_feed_articles(
+                source,
+                SourceFetchError(
+                    f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
+                ),
             )
         return articles
     try:

@@ -350,6 +350,7 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
         """sources:
   - website: 上下游新聞
     url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 上下游
     enabled: true
     parser: wordpress_posts_json
@@ -371,6 +372,10 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
     assert all(source.show_no_update for source in sources)
+    assert sources[0].fallback_url == (
+        "https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw"
+        "&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant"
+    )
 
 
 def test_hdares_sources_are_official_rss_feeds():
@@ -460,6 +465,7 @@ def test_source_config_reads_exclude_title_patterns():
     )
     assert by_name["上下游"].url == "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date"
     assert by_name["上下游"].parser == "wordpress_posts_json"
+    assert by_name["上下游"].fallback_url.startswith("https://news.google.com/rss/")
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
     assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
     assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
