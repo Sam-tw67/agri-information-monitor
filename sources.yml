@@ -143,9 +143,11 @@ sources:
     parser: dares_html_list
 
   - website: 上下游新聞
-    url: https://www.newsmarket.com.tw/feed/
+    # WordPress REST API avoids Cloudflare blocking the public RSS feed from GitHub Actions.
+    url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
     output_heading: 上下游
     enabled: true
+    parser: wordpress_posts_json
     exclude_title_patterns:
       - '營養午餐|午餐法'
       - '連署|透明餐桌|原料來源標示'

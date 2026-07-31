@@ -14,10 +14,10 @@
 ```yaml
 sources:
   - website: 上下游新聞
-    url: https://www.newsmarket.com.tw/feed/
+    url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
     output_heading: 上下游
     enabled: true
-    include_title_patterns: []
+    parser: wordpress_posts_json
 ```
 
 - `url`：實際監控位置。
@@ -27,7 +27,7 @@ sources:
 - `exclude_title_patterns`：選填的標題正規表示式排除清單。
 - `show_no_update`：選填，預設為 `true`；該來源當日 0 筆時會彙整到「以下監控項目無新增項目來源」段落。
 
-花蓮區農業改良場使用本場新聞、最新消息與近期活動三個官方 RSS。其他來源與所有排除規則記錄在 `sources.yml`。
+花蓮區農業改良場使用本場新聞、最新消息與近期活動三個官方 RSS；上下游使用官方 WordPress JSON 列表，並以系統 `curl` 讀取，避開 Cloudflare 對 Python HTTP 指紋的 403。每次執行只讀取各來源的列表／RSS；已有可靠發布日期的項目不會再讀取文章頁，只有缺日期的項目才補抓中繼資料。其他來源與所有排除規則記錄在 `sources.yml`。
 
 農藥資訊服務網只收錄指定的農藥使用方法公告與「更新通知」；代噴人員與空中施作代噴人員公告不納入。衛福部食藥署只查詢標題含「農藥殘留容許量標準」的最新一筆公告。
 

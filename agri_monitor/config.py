@@ -61,7 +61,12 @@ def read_sources(path: str | Path) -> list[Source]:
         include_patterns = _read_patterns(item, index, "include_title_patterns")
         exclude_patterns = _read_patterns(item, index, "exclude_title_patterns")
         parser = str(item.get("parser") or "generic").strip()
-        if parser not in {"generic", "fda_news_table", "dares_html_list"}:
+        if parser not in {
+            "generic",
+            "fda_news_table",
+            "dares_html_list",
+            "wordpress_posts_json",
+        }:
             raise SourceConfigError(
                 f"sources 第 {index} 筆 parser 不支援：{parser}"
             )

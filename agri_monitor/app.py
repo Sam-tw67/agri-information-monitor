@@ -20,8 +20,7 @@ from .scraper import enrich_article, fetch_source, filter_and_dedupe, normalize_
 
 LOG = logging.getLogger(__name__)
 TITLE_DATE_PREFIX = re.compile(r"^\s*\d{2,3}[-/]\d{1,2}[-/]\d{1,2}\s+")
-RECOVERY_ATTEMPTS = 3
-RECOVERY_DELAY_SECONDS = 20 * 60
+SOURCE_RETRY_DELAY_SECONDS = 5 * 60
 
 
 def _required(name: str) -> str:
@@ -147,15 +146,20 @@ def _collect_source_results(
                     discovered[0].title,
                     discovered[0].published_date,
                 )
-            # Do not request article pages for entries whose reliable list/feed
-            # date already proves they are outside this run's window.
+            # Only entries without a reliable list/feed date need an article-page
+            # request to recover their publication date.
             candidates = [
                 article
                 for article in discovered
                 if article.published_date is None
                 or start_date <= article.published_date <= end_date
             ]
-            enriched = [enrich_article(article) for article in candidates]
+            enriched = [
+                article
+                if article.published_date is not None
+                else enrich_article(article)
+                for article in candidates
+            ]
             articles = filter_and_dedupe(enriched, start_date, end_date)
             unique_articles = _dedupe_run_articles(
                 articles, seen_run_urls, seen_run_titles
@@ -170,79 +174,6 @@ def _collect_source_results(
     return grouped, source_failures, failed_sources
 
 
-def _send_recovery_email(
-    *,
-    failed_sources: list[Source],
-    start_date: date,
-    end_date: date,
-    report_title: str,
-    username: str,
-    recipients: tuple[str, ...],
-    smtp_port: int,
-    smtp_password: str,
-) -> None:
-    """Retry only initial failures, then send one consolidated recovery email."""
-    pending_sources = failed_sources
-    recovered: dict[Source, list[Article]] = {}
-    final_failures: list[tuple[str, str]] = []
-
-    for attempt in range(1, RECOVERY_ATTEMPTS + 1):
-        LOG.warning(
-            "%d 個來源待補抓；%d 分鐘後進行第 %d/%d 次補抓",
-            len(pending_sources),
-            RECOVERY_DELAY_SECONDS // 60,
-            attempt,
-            RECOVERY_ATTEMPTS,
-        )
-        time.sleep(RECOVERY_DELAY_SECONDS)
-        grouped, final_failures, pending_sources = _collect_source_results(
-            pending_sources, start_date, end_date
-        )
-        recovered.update(dict(grouped))
-
-        if not pending_sources:
-            notice = (
-                f"補抓結果：原先失敗的 {len(failed_sources)} 個來源，"
-                f"已於第 {attempt} 次補抓全部成功。"
-            )
-        elif attempt == RECOVERY_ATTEMPTS:
-            notice = (
-                f"補抓結果：已完成 {len(recovered)}/{len(failed_sources)} 個來源；"
-                f"第 {attempt} 次補抓後仍有 {len(pending_sources)} 個來源失敗。"
-            )
-        else:
-            continue
-
-        recovered_groups = [
-            (source, recovered[source])
-            for source in failed_sources
-            if source in recovered
-        ]
-        recovery_title = f"{report_title} 補抓結果（第 {attempt} 次）"
-        message = build_report_email(
-            recovery_title,
-            recovered_groups,
-            AcriSyncResult(0, 0, 0, [], []),
-            final_failures,
-            sender=username,
-            recipients=recipients,
-            include_acri_status=False,
-            notice=notice,
-        )
-        send_report_email(
-            message,
-            host=os.getenv("SMTP_HOST", "smtp.gmail.com").strip() or "smtp.gmail.com",
-            port=smtp_port,
-            username=username,
-            password=smtp_password,
-        )
-        print(
-            f"Recovery email sent: {recovery_title}; "
-            f"recovered_sources={len(recovered)}; remaining_failures={len(pending_sources)}"
-        )
-        return
-
-
 def run(run_date: date, dry_run: bool = False) -> int:
     sources = read_sources(os.getenv("SOURCES_FILE", "sources.yml"))
     LOG.info("從來源設定檔讀取到 %d 個啟用來源", len(sources))
@@ -253,6 +184,23 @@ def run(run_date: date, dry_run: bool = False) -> int:
     grouped, source_failures, failed_sources = _collect_source_results(
         sources, start_date, end_date
     )
+    if failed_sources:
+        LOG.warning(
+            "%d 個來源待補抓；%d 分鐘後重試一次，再寄送結果",
+            len(failed_sources),
+            SOURCE_RETRY_DELAY_SECONDS // 60,
+        )
+        time.sleep(SOURCE_RETRY_DELAY_SECONDS)
+        retried_grouped, source_failures, failed_sources = _collect_source_results(
+            failed_sources, start_date, end_date
+        )
+        articles_by_source = dict(grouped)
+        articles_by_source.update(dict(retried_grouped))
+        grouped = [
+            (source, articles_by_source[source])
+            for source in sources
+            if source in articles_by_source
+        ]
     failures = len(source_failures)
 
     try:
@@ -305,29 +253,17 @@ def run(run_date: date, dry_run: bool = False) -> int:
         sender=username,
         recipients=recipients,
     )
-    smtp_password = _required("SMTP_APP_PASSWORD")
     send_report_email(
         message,
         host=os.getenv("SMTP_HOST", "smtp.gmail.com").strip() or "smtp.gmail.com",
         port=smtp_port,
         username=username,
-        password=smtp_password,
+        password=_required("SMTP_APP_PASSWORD"),
     )
     print(
         f"Email sent: {title}; articles={article_count}; "
         f"acri_created={len(acri_result.created)}"
     )
-    if failed_sources:
-        _send_recovery_email(
-            failed_sources=failed_sources,
-            start_date=start_date,
-            end_date=end_date,
-            report_title=title,
-            username=username,
-            recipients=recipients,
-            smtp_port=smtp_port,
-            smtp_password=smtp_password,
-        )
     if failures == len(sources) and acri_result.error:
         raise RuntimeError("全部一般來源與 ACRI 皆失敗；錯誤報告已寄出")
     if acri_result.error:

@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import subprocess
 import time
 from datetime import date, datetime
 from email.utils import parsedate_to_datetime
@@ -15,7 +16,7 @@ from .models import Article, Source
 
 LOG = logging.getLogger(__name__)
 USER_AGENT = "AgriInformationMonitor/1.0 (+scheduled metadata-only monitor)"
-REQUEST_RETRY_DELAYS = (3, 10, 30)
+REQUEST_RETRY_DELAYS = (5,)
 TRACKING_KEYS = {"fbclid", "gclid", "dclid", "mc_cid", "mc_eid", "ref", "source"}
 DATE_META_KEYS = {
     "article:published_time", "datepublished", "date", "publishdate", "pubdate",
@@ -289,6 +290,59 @@ def _fda_news_articles(html: str, base_url: str) -> list[Article]:
     return articles
 
 
+def _wordpress_posts_articles(content: bytes, base_url: str) -> list[Article]:
+    try:
+        posts = json.loads(content)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return []
+    if not isinstance(posts, list):
+        return []
+
+    articles = []
+    for post in posts:
+        if not isinstance(post, dict):
+            continue
+        url = str(post.get("link") or "").strip()
+        title_data = post.get("title")
+        title_html = title_data.get("rendered") if isinstance(title_data, dict) else title_data
+        title = BeautifulSoup(str(title_html or ""), "html.parser").get_text(" ", strip=True)
+        if url and title:
+            articles.append(Article(title, urljoin(base_url, url), _parse_date(post.get("date"))))
+    return articles
+
+
+def _curl_get(url: str) -> bytes:
+    """Fetch a Cloudflare-protected JSON list with curl's browser-compatible TLS."""
+    try:
+        completed = subprocess.run(
+            [
+                "curl",
+                "--fail",
+                "--silent",
+                "--show-error",
+                "--location",
+                "--max-time",
+                "30",
+                "--header",
+                f"User-Agent: {USER_AGENT}",
+                "--header",
+                "Accept: application/json, text/html;q=0.9, application/xml;q=0.8, */*;q=0.7",
+                "--header",
+                "Accept-Language: zh-TW,zh;q=0.9,en;q=0.8",
+                url,
+            ],
+            capture_output=True,
+            check=False,
+            timeout=35,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise SourceFetchError(f"curl 無法讀取 {url}：{exc}") from exc
+    if completed.returncode != 0:
+        error = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise SourceFetchError(f"curl 無法讀取 {url}：{error or '未知錯誤'}")
+    return completed.stdout
+
+
 def fetch_source(source: Source) -> list[Article]:
     request_url = source.url
     if source.query_keyword:
@@ -299,6 +353,13 @@ def fetch_source(source: Source) -> list[Article]:
         request_url = urlunsplit(
             (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
         )
+    if source.parser == "wordpress_posts_json":
+        articles = _wordpress_posts_articles(_curl_get(request_url), request_url)
+        if not articles:
+            raise SourceFetchError(
+                f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
+            )
+        return articles
     try:
         response = _get(request_url)
     except requests.RequestException as exc:

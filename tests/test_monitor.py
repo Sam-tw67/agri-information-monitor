@@ -14,6 +14,7 @@ from agri_monitor.scraper import (
     _fda_news_articles,
     _html_candidates,
     _pesticide_news_articles,
+    _wordpress_posts_articles,
     filter_and_dedupe,
 )
 
@@ -47,6 +48,38 @@ def test_filter_is_inclusive_and_excludes_outside_dates():
     ]
     result = filter_and_dedupe(articles, date(2026, 6, 15), date(2026, 6, 21))
     assert [article.title for article in result] == ["start", "end"]
+
+
+def test_collect_source_results_only_enriches_articles_without_dates(monkeypatch):
+    source = Source("來源", "https://source.test")
+    dated = Article("已有日期", "https://source.test/dated", date(2026, 6, 21))
+    undated = Article("缺少日期", "https://source.test/undated", None)
+    enriched = []
+
+    monkeypatch.setattr(app, "fetch_source", lambda _source: [dated, undated])
+
+    def enrich(article):
+        enriched.append(article)
+        return Article(article.title, article.url, date(2026, 6, 21))
+
+    monkeypatch.setattr(app, "enrich_article", enrich)
+
+    grouped, failures, failed_sources = app._collect_source_results(
+        [source], date(2026, 6, 21), date(2026, 6, 21)
+    )
+
+    assert enriched == [undated]
+    assert failures == []
+    assert failed_sources == []
+    assert grouped == [
+        (
+            source,
+            [
+                dated,
+                Article("缺少日期", "https://source.test/undated", date(2026, 6, 21)),
+            ],
+        )
+    ]
 
 
 def test_missing_date_is_excluded():
@@ -178,7 +211,7 @@ def test_formal_run_sends_email_even_when_nothing_is_new(monkeypatch):
     assert "以下監控項目無新增項目來源：花蓮改良場、ACRI 農藥問答集。" in plain
 
 
-def test_failed_sources_are_retried_until_all_recover_then_one_recovery_email(monkeypatch):
+def test_failed_sources_are_retried_once_before_the_daily_email(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
@@ -194,10 +227,8 @@ def test_failed_sources_are_retried_until_all_recover_then_one_recovery_email(mo
 
     def fetch(source):
         calls[source.name] += 1
-        if source.name == "A" and calls[source.name] == 1:
-            raise RuntimeError("temporary A failure")
-        if source.name == "B" and calls[source.name] < 3:
-            raise RuntimeError("temporary B failure")
+        if calls[source.name] == 1:
+            raise RuntimeError(f"temporary {source.name} failure")
         return [
             Article(
                 f"article-{source.name}",
@@ -225,21 +256,18 @@ def test_failed_sources_are_retried_until_all_recover_then_one_recovery_email(mo
     )
 
     assert app.run(date(2026, 6, 22)) == 0
-    assert calls == {"A": 2, "B": 3}
-    assert pauses == [20 * 60, 20 * 60]
+    assert calls == {"A": 2, "B": 2}
+    assert pauses == [5 * 60]
     assert len(acri_calls) == 1
-    assert len(sent) == 2
-    initial_plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
-    recovery_plain = sent[1][0].get_body(preferencelist=("plain",)).get_content()
-    assert "temporary A failure" in initial_plain
-    assert "temporary B failure" in initial_plain
-    assert "已於第 2 次補抓全部成功" in recovery_plain
-    assert "article-A" in recovery_plain
-    assert "article-B" in recovery_plain
-    assert "ACRI" not in sent[1][0]["Subject"]
+    assert len(sent) == 1
+    plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
+    assert "temporary A failure" not in plain
+    assert "temporary B failure" not in plain
+    assert "article-A" in plain
+    assert "article-B" in plain
 
 
-def test_failed_sources_send_final_recovery_email_after_three_attempts(monkeypatch):
+def test_failed_sources_are_reported_once_after_one_retry(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
     monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
@@ -269,12 +297,11 @@ def test_failed_sources_send_final_recovery_email_after_three_attempts(monkeypat
     )
 
     assert app.run(date(2026, 6, 22)) == 0
-    assert len(fetch_calls) == 4  # Initial run plus three recovery attempts.
-    assert pauses == [20 * 60, 20 * 60, 20 * 60]
-    assert len(sent) == 2
-    final_plain = sent[1][0].get_body(preferencelist=("plain",)).get_content()
-    assert "第 3 次補抓後仍有 1 個來源失敗" in final_plain
-    assert "still unavailable" in final_plain
+    assert len(fetch_calls) == 2  # Initial fetch plus one retry.
+    assert pauses == [5 * 60]
+    assert len(sent) == 1
+    plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
+    assert "still unavailable" in plain
 
 
 def test_source_config_uses_urls_and_output_headings(tmp_path):
@@ -282,9 +309,10 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
     config.write_text(
         """sources:
   - website: 上下游新聞
-    url: https://www.newsmarket.com.tw/feed/
+    url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
     output_heading: 上下游
     enabled: true
+    parser: wordpress_posts_json
   - website: 農藥資訊服務網
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
     output_heading: 農藥與法規修正彙整表
@@ -298,7 +326,7 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
     )
     sources = read_sources(config)
     assert [(source.name, source.url) for source in sources] == [
-        ("上下游", "https://www.newsmarket.com.tw/feed/"),
+        ("上下游", "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date"),
         ("農藥與法規修正彙整表", "https://pesticide.aphia.gov.tw/information/Data/NewsLast"),
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
@@ -390,7 +418,8 @@ def test_source_config_reads_exclude_title_patterns():
         "錄取(?:人員)?名單" in pattern
         for pattern in by_name["台中農改場－最新消息"].exclude_title_patterns
     )
-    assert by_name["上下游"].url == "https://www.newsmarket.com.tw/feed/"
+    assert by_name["上下游"].url == "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date"
+    assert by_name["上下游"].parser == "wordpress_posts_json"
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
     assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
     assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
@@ -525,6 +554,26 @@ def test_dares_html_list_parser_extracts_roc_dates_titles_and_urls():
             "https://www.tydares.gov.tw/theme_data.php?theme=hotnews_ws&id=2",
             date(2026, 5, 9),
         ),
+    ]
+
+
+def test_wordpress_posts_parser_extracts_title_url_and_date():
+    content = b'''[
+      {
+        "date": "2026-07-30T20:56:42",
+        "link": "https://www.newsmarket.com.tw/blog/240725/",
+        "title": {"rendered": "<strong>\xe4\xb8\x8a\xe4\xb8\x8b\xe6\xb8\xb8</strong> \xe6\xb8\xac\xe8\xa9\xa6"}
+      }
+    ]'''
+    assert _wordpress_posts_articles(
+        content,
+        "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts",
+    ) == [
+        Article(
+            "上下游 測試",
+            "https://www.newsmarket.com.tw/blog/240725/",
+            date(2026, 7, 30),
+        )
     ]
 
 
