@@ -23,8 +23,8 @@ concurrency:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    # A failed source is retried once before the only daily report is sent.
-    timeout-minutes: 60
+    # A single-source failure retries once; a total network outage retries before reporting.
+    timeout-minutes: 120
     env:
       NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
       ACRI_SOURCE_URL: https://mbox.acri.gov.tw/TA02.asp

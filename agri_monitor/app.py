@@ -21,6 +21,14 @@ from .scraper import enrich_article, fetch_source, filter_and_dedupe, normalize_
 LOG = logging.getLogger(__name__)
 TITLE_DATE_PREFIX = re.compile(r"^\s*\d{2,3}[-/]\d{1,2}[-/]\d{1,2}\s+")
 SOURCE_RETRY_DELAY_SECONDS = 5 * 60
+SYSTEMIC_NETWORK_RETRY_ATTEMPTS = 3
+SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS = 10 * 60
+NETWORK_FAILURE_MARKERS = (
+    "Network is unreachable",
+    "Failed to establish a new connection",
+    "timed out",
+    "Temporary failure in name resolution",
+)
 
 
 def _required(name: str) -> str:
@@ -39,6 +47,15 @@ def _latest_reliable_article(source_name: str, articles):
 
 def _matches_any(patterns: tuple[str, ...], title: str) -> bool:
     return any(re.search(pattern, title) for pattern in patterns)
+
+
+def _all_sources_have_network_failures(
+    source_failures: list[tuple[str, str]], source_count: int
+) -> bool:
+    return source_count > 0 and len(source_failures) == source_count and all(
+        any(marker in error for marker in NETWORK_FAILURE_MARKERS)
+        for _, error in source_failures
+    )
 
 
 def _apply_source_title_filters(source: Source, articles: list[Article]) -> list[Article]:
@@ -184,7 +201,23 @@ def run(run_date: date, dry_run: bool = False) -> int:
     grouped, source_failures, failed_sources = _collect_source_results(
         sources, start_date, end_date
     )
-    if failed_sources:
+    if _all_sources_have_network_failures(source_failures, len(sources)):
+        for attempt in range(1, SYSTEMIC_NETWORK_RETRY_ATTEMPTS + 1):
+            LOG.warning(
+                "所有來源的網路連線都失敗；%d 分鐘後進行第 %d/%d 次全域重試",
+                SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS // 60,
+                attempt,
+                SYSTEMIC_NETWORK_RETRY_ATTEMPTS,
+            )
+            time.sleep(SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS)
+            grouped, source_failures, failed_sources = _collect_source_results(
+                sources, start_date, end_date
+            )
+            if not _all_sources_have_network_failures(source_failures, len(sources)):
+                break
+    if failed_sources and not _all_sources_have_network_failures(
+        source_failures, len(sources)
+    ):
         LOG.warning(
             "%d 個來源待補抓；%d 分鐘後重試一次，再寄送結果",
             len(failed_sources),

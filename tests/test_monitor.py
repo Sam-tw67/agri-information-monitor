@@ -267,6 +267,46 @@ def test_failed_sources_are_retried_once_before_the_daily_email(monkeypatch):
     assert "article-B" in plain
 
 
+def test_systemic_network_failure_retries_all_sources_before_daily_email(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/TA02.asp")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    sources = [Source("A", "https://a.test"), Source("B", "https://b.test")]
+    calls = {source.name: 0 for source in sources}
+
+    def fetch(source):
+        calls[source.name] += 1
+        if calls[source.name] == 1:
+            raise RuntimeError("Network is unreachable")
+        return [Article(f"article-{source.name}", f"https://article.test/{source.name}", date(2026, 6, 21))]
+
+    monkeypatch.setattr(app, "read_sources", lambda *args: sources)
+    monkeypatch.setattr(app, "fetch_source", fetch)
+    monkeypatch.setattr(app, "enrich_article", lambda article: article)
+    monkeypatch.setattr(app, "NotionClient", lambda *args: object())
+    monkeypatch.setattr(
+        app, "sync_acri", lambda *args, **kwargs: AcriSyncResult(0, 0, 0, [], [])
+    )
+    pauses = []
+    monkeypatch.setattr(app.time, "sleep", pauses.append)
+    sent = []
+    monkeypatch.setattr(
+        app, "send_report_email", lambda message, **kwargs: sent.append(message)
+    )
+
+    assert app.run(date(2026, 6, 22)) == 0
+    assert calls == {"A": 2, "B": 2}
+    assert pauses == [10 * 60]
+    assert len(sent) == 1
+    plain = sent[0].get_body(preferencelist=("plain",)).get_content()
+    assert "Network is unreachable" not in plain
+    assert "article-A" in plain
+    assert "article-B" in plain
+
+
 def test_failed_sources_are_reported_once_after_one_retry(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "secret")
     monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
