@@ -1,5 +1,10 @@
 from datetime import date
+import json
 
+import pytest
+import requests
+
+from agri_monitor import acri
 from agri_monitor.acri import AcriScraper, sync_acri
 from agri_monitor.email_report import build_report_email
 from agri_monitor.models import AcriEntry, AcriSyncResult
@@ -26,6 +31,124 @@ def row(number: str, category: str, day: str, question: str) -> str:
         <td><a href="TA03.asp?Enc={number}&amp;Click=Y">{question}</a></td><td>1</td>
       </tr>
     """
+
+
+def response(status_code: int, text: str = "") -> requests.Response:
+    result = requests.Response()
+    result.status_code = status_code
+    result.url = "https://mbox.acri.gov.tw/TA02.asp"
+    result._content = text.encode("big5")
+    return result
+
+
+def json_response(payload: dict) -> requests.Response:
+    result = requests.Response()
+    result.status_code = 200
+    result.url = "https://mboxap.acri.gov.tw/POP30/FAQ/FAQ/GetFaqList"
+    result._content = json.dumps(payload).encode("utf-8")
+    result.headers["Content-Type"] = "application/json; charset=utf-8"
+    return result
+
+
+def test_acri_fetch_page_retries_temporary_timeout(monkeypatch):
+    scraper = AcriScraper(
+        "https://mbox.acri.gov.tw/TA02.asp", retry_delays=(30, 120)
+    )
+    outcomes = [requests.ConnectTimeout("timed out"), response(200, "成功")]
+    sleeps = []
+
+    def get(*args, **kwargs):
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr(scraper.session, "get", get)
+    monkeypatch.setattr(acri.time, "sleep", sleeps.append)
+
+    assert scraper._fetch_page(1) == "成功"
+    assert sleeps == [30]
+
+
+def test_acri_fetch_page_does_not_retry_permanent_client_error(monkeypatch):
+    scraper = AcriScraper(
+        "https://mbox.acri.gov.tw/TA02.asp", retry_delays=(30, 120)
+    )
+    calls = []
+    sleeps = []
+
+    def get(*args, **kwargs):
+        calls.append((args, kwargs))
+        return response(404)
+
+    monkeypatch.setattr(scraper.session, "get", get)
+    monkeypatch.setattr(acri.time, "sleep", sleeps.append)
+
+    with pytest.raises(requests.HTTPError):
+        scraper._fetch_page(1)
+
+    assert len(calls) == 1
+    assert sleeps == []
+
+
+def test_acri_new_faq_api_fetches_all_pages_and_maps_fields(monkeypatch):
+    source_url = "https://mboxap.acri.gov.tw/POP30/FAQ/FAQ/GetFaqList"
+    scraper = AcriScraper(source_url, retry_delays=())
+    outcomes = [
+        json_response(
+            {
+                "Data": [
+                    {
+                        "FAQId": "43441997-5128-43e9-983c-6a205a3db615",
+                        "Question": "第一題",
+                        "BusinessCategory": "4",
+                        "PublishDate": "2026-07-20T00:00:00+00:00",
+                    }
+                ],
+                "Total": 2,
+            }
+        ),
+        json_response(
+            {
+                "Data": [
+                    {
+                        "FAQId": "dd84837a-10d9-4c65-a5e6-12f075232e5a",
+                        "Question": "第二題含雙重逸出：&amp;#33096;硫",
+                        "BusinessCategory": "8",
+                        "PublishDate": "2026-07-01T00:00:00Z",
+                    }
+                ],
+                "Total": 2,
+            }
+        ),
+    ]
+    calls = []
+
+    def post(url, **kwargs):
+        calls.append((url, kwargs))
+        return outcomes.pop(0)
+
+    monkeypatch.setattr(scraper.session, "post", post)
+
+    entries = scraper.fetch_all()
+
+    assert entries == [
+        AcriEntry(
+            "43441997-5128-43e9-983c-6a205a3db615",
+            "藥毒物檢驗",
+            date(2026, 7, 20),
+            "第一題",
+            "https://mboxap.acri.gov.tw/POP30/",
+        ),
+        AcriEntry(
+            "dd84837a-10d9-4c65-a5e6-12f075232e5a",
+            "農藥管理",
+            date(2026, 7, 1),
+            "第二題含雙重逸出：腈硫",
+            "https://mboxap.acri.gov.tw/POP30/",
+        ),
+    ]
+    assert [call[1]["data"]["page"] for call in calls] == [1, 2]
 
 
 def test_acri_parser_reads_number_category_date_question_and_detail_url():
@@ -97,6 +220,51 @@ def test_acri_incremental_sync_skips_existing_numbers_and_creates_missing(monkey
     assert result.planned_count == 1
     assert [item.entry.number for item in result.created] == ["000002"]
     assert result.duplicate_numbers == ["000001"]
+
+
+def test_acri_incremental_sync_skips_migrated_question_with_new_identifier():
+    entries = [
+        AcriEntry(
+            "43441997-5128-43e9-983c-6a205a3db615",
+            "藥毒物檢驗",
+            date(2026, 7, 20),
+            "已由舊站匯入的問題",
+            "https://new.test/faq",
+        ),
+        AcriEntry(
+            "dd84837a-10d9-4c65-a5e6-12f075232e5a",
+            "農藥管理",
+            date(2026, 8, 13),
+            "新版新增問題",
+            "https://new.test/faq",
+        ),
+    ]
+
+    class Scraper:
+        def fetch_all(self):
+            return entries
+
+    class Client:
+        def validate_acri_target(self):
+            pass
+
+        def acri_existing_numbers(self):
+            return {"003146"}, []
+
+        def acri_existing_questions(self):
+            return {"已由舊站匯入的問題"}
+
+        def ensure_acri_categories(self, categories):
+            assert categories == {"農藥管理"}
+
+        def create_acri_page(self, entry):
+            assert entry.question == "新版新增問題"
+            return {"id": "page", "url": "https://notion.test/page"}
+
+    result = sync_acri(Scraper(), Client())
+
+    assert result.planned_count == 1
+    assert [item.entry.question for item in result.created] == ["新版新增問題"]
 
 
 def test_acri_partial_failure_keeps_successes_for_email_report():

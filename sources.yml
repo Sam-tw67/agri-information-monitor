@@ -5,6 +5,7 @@ sources:
     enabled: true
     exclude_title_patterns:
       - '酒麴|釀造班|原鄉風味|釀造尖兵'
+      - '迎戰永續浪潮！花蓮農改場農業ESG實踐班圓滿結訓'
 
   - website: 花蓮區農業改良場最新消息
     url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss
@@ -22,7 +23,6 @@ sources:
     output_heading: 花蓮農改場－近期活動
     enabled: true
     exclude_title_patterns:
-      - '文旦中果期栽培管理暨病蟲害防治技術講習會'
       - '食農教育宣導人員基礎培訓'
       - '地方說明會'
 
@@ -36,6 +36,7 @@ sources:
       - '省工高效及碳匯農機補助'
       - '延期|另行通知'
       - '文化部.*社區營造獎'
+      - '^協助公告'
 
   - website: 苗栗區農業改良場農業新聞
     url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
@@ -180,3 +181,9 @@ sources:
       - '農藥殘留容許量標準'
     latest_only: true
     show_no_update: true
+
+  - website: 農業技術交易網農業新聞
+    url: https://tatm.moa.gov.tw/Home/EPaperNewsList.aspx
+    output_heading: 農業技術交易網農業新聞
+    enabled: true
+    parser: tatm_epaper_news

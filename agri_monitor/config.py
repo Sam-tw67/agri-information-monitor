@@ -76,6 +76,7 @@ def read_sources(path: str | Path) -> list[Source]:
             "fda_news_table",
             "dares_html_list",
             "wordpress_posts_json",
+            "tatm_epaper_news",
         }:
             raise SourceConfigError(
                 f"sources 第 {index} 筆 parser 不支援：{parser}"

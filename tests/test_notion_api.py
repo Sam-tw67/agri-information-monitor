@@ -40,3 +40,28 @@ def test_explicit_data_source_id_skips_database_discovery(monkeypatch):
         ),
     )
     assert client.data_source_id() == "explicit-data-source-id"
+
+
+def test_acri_existing_scan_collects_identifiers_and_questions(monkeypatch):
+    client = NotionClient("token", "database-id", "data-source-id")
+    pages = [
+        {
+            "properties": {
+                "編號": {"rich_text": [{"plain_text": "003146"}]},
+                "問題": {"title": [{"plain_text": "既有問題"}]},
+            }
+        },
+        {
+            "properties": {
+                "編號": {"rich_text": [{"plain_text": "003146"}]},
+                "問題": {"title": [{"plain_text": "另一個問題"}]},
+            }
+        },
+    ]
+    monkeypatch.setattr(client, "_query_all", lambda _data_source_id: pages)
+
+    numbers, duplicates = client.acri_existing_numbers()
+
+    assert numbers == {"003146"}
+    assert duplicates == ["003146"]
+    assert client.acri_existing_questions() == {"既有問題", "另一個問題"}

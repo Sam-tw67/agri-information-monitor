@@ -23,6 +23,7 @@ class NotionClient:
     ):
         self.database_id = database_id
         self._resolved_data_source_id: str | None = data_source_id or None
+        self._last_acri_existing_questions: set[str] | None = None
         self._last_request_at = 0.0
         self.session = requests.Session()
         self.session.headers.update(
@@ -131,14 +132,25 @@ class NotionClient:
 
     def acri_existing_numbers(self) -> tuple[set[str], list[str]]:
         counts: dict[str, int] = {}
+        questions: set[str] = set()
         for page in self._query_all(self.data_source_id()):
             properties = page.get("properties", {})
-            prop = properties.get("編號", {}) if isinstance(properties, Mapping) else {}
-            number = self._plain_text(prop, "rich_text")
+            if not isinstance(properties, Mapping):
+                continue
+            number = self._plain_text(properties.get("編號", {}), "rich_text")
             if number:
                 counts[number] = counts.get(number, 0) + 1
+            question = self._plain_text(properties.get("問題", {}), "title")
+            if question:
+                questions.add(question)
+        self._last_acri_existing_questions = questions
         duplicates = sorted(number for number, count in counts.items() if count > 1)
         return set(counts), duplicates
+
+    def acri_existing_questions(self) -> set[str]:
+        if self._last_acri_existing_questions is None:
+            self.acri_existing_numbers()
+        return set(self._last_acri_existing_questions or ())
 
     def acri_categories(self) -> list[dict]:
         schema = self.data_source_schema()

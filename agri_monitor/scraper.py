@@ -23,6 +23,15 @@ DATE_META_KEYS = {
     "publication_date", "dc.date", "dc.date.issued", "sailthru.date",
 }
 ROC_DATE_PATTERN = re.compile(r"(?<!\d)(\d{2,3})[/-](\d{1,2})[/-](\d{1,2})(?!\d)")
+TATM_POSTBACK_PATTERN = re.compile(
+    r"__doPostBack\(\s*['\"](?P<target>[^'\"]+)['\"]\s*,\s*"
+    r"['\"](?P<argument>[^'\"]*)['\"]\s*\)",
+    re.IGNORECASE,
+)
+TATM_WINDOW_OPEN_PATTERN = re.compile(
+    r"window\.open\(\s*['\"](?P<url>https?://[^'\"\s]+)['\"]",
+    re.IGNORECASE,
+)
 
 
 class SourceFetchError(RuntimeError):
@@ -123,13 +132,12 @@ def _normalized_meta_key(meta) -> str:
     return str(meta.get("property") or meta.get("name") or meta.get("itemprop") or "").strip().lower()
 
 
-def _get(url: str) -> requests.Response:
+def _request_with_retries(request, url: str, **kwargs) -> requests.Response:
     for attempt in range(len(REQUEST_RETRY_DELAYS) + 1):
         try:
-            response = requests.get(
+            response = request(
                 url,
-                headers={"User-Agent": USER_AGENT},
-                timeout=30,
+                **kwargs,
             )
             response.raise_for_status()
             return response
@@ -155,6 +163,15 @@ def _get(url: str) -> requests.Response:
             time.sleep(delay)
 
     raise AssertionError("HTTP retry loop ended unexpectedly")
+
+
+def _get(url: str) -> requests.Response:
+    return _request_with_retries(
+        requests.get,
+        url,
+        headers={"User-Agent": USER_AGENT},
+        timeout=30,
+    )
 
 
 def _feed_articles(content: bytes, base_url: str) -> list[Article]:
@@ -290,6 +307,61 @@ def _fda_news_articles(html: str, base_url: str) -> list[Article]:
     return articles
 
 
+def _tatm_postback_fields(html: str) -> dict[str, str]:
+    soup = BeautifulSoup(html, "html.parser")
+    return {
+        str(field["name"]): str(field.get("value") or "")
+        for field in soup.select('input[type="hidden"][name]')
+    }
+
+
+def _tatm_epaper_news_articles(session: requests.Session, list_url: str, html: str) -> list[Article]:
+    """Resolve TATM's ASP.NET title postbacks to the external article URLs."""
+    soup = BeautifulSoup(html, "html.parser")
+    listed_articles: list[tuple[str, date, str, str]] = []
+    for link in soup.select('a[id$="lbnUrl"][href*="__doPostBack"]'):
+        row = link.find_parent("tr")
+        date_node = row.select_one(".text-success") if row else None
+        published = _parse_date(date_node.get_text(" ", strip=True) if date_node else None)
+        title = link.get_text(" ", strip=True)
+        postback = TATM_POSTBACK_PATTERN.search(str(link.get("href") or ""))
+        if not title or not published or not postback:
+            continue
+        listed_articles.append(
+            (title, published, postback.group("target"), postback.group("argument"))
+        )
+
+    articles: list[Article] = []
+    postback_html = html
+    for title, published, target, argument in listed_articles:
+        data = _tatm_postback_fields(postback_html)
+        if not data:
+            raise SourceFetchError("TATM list is missing ASP.NET hidden fields")
+        data["__EVENTTARGET"] = target
+        data["__EVENTARGUMENT"] = argument
+        try:
+            response = _request_with_retries(
+                session.post,
+                list_url,
+                data=data,
+                timeout=30,
+            )
+        except requests.RequestException as exc:
+            LOG.warning("TATM could not resolve article URL: %s (%s)", title, exc)
+            continue
+        postback_html = response.text
+        match = TATM_WINDOW_OPEN_PATTERN.search(response.text)
+        article_url = match.group("url") if match else ""
+        if not article_url and response.url != list_url:
+            article_url = response.url
+        article_url = urljoin(list_url, article_url)
+        if urlsplit(article_url).scheme not in {"http", "https"} or article_url == list_url:
+            LOG.warning("TATM did not return an article URL: %s", title)
+            continue
+        articles.append(Article(title, article_url, published))
+    return articles
+
+
 def _wordpress_posts_articles(content: bytes, base_url: str) -> list[Article]:
     try:
         posts = json.loads(content)
@@ -386,6 +458,19 @@ def fetch_source(source: Source) -> list[Article]:
                     f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
                 ),
             )
+        return articles
+    if source.parser == "tatm_epaper_news":
+        session = requests.Session()
+        session.headers.update({"User-Agent": USER_AGENT})
+        try:
+            response = _request_with_retries(session.get, request_url, timeout=30)
+            articles = _tatm_epaper_news_articles(session, response.url, response.text)
+        except requests.RequestException as exc:
+            raise SourceFetchError(f"Unable to read {request_url}: {exc}") from exc
+        finally:
+            session.close()
+        if not articles:
+            raise SourceFetchError(f"TATM returned no usable article URLs: {request_url}")
         return articles
     try:
         response = _get(request_url)

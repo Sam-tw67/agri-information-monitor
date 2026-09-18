@@ -3,7 +3,7 @@
 週一到週六台灣時間 07:37 由 GitHub Actions 執行，本機關機後仍會運作。任務包含兩部分：
 
 1. 擷取一般農業資訊來源指定日期區間的文章，套用來源專屬標題篩選與去重後，將標題與原始 URL 寄至 Email。
-2. 掃描 ACRI 農藥問答集全部分頁，以六碼 `編號` 比對專用 Notion database，只新增尚不存在的問答，並將本次新增項目的 Notion 連結放入同一封 Email。
+2. 掃描 ACRI 農藥問答集全部分頁，以來源識別碼及問題標題比對專用 Notion database，只新增尚不存在的問答，並將本次新增項目的 Notion 連結放入同一封 Email。
 
 一般監控結果不再寫入 Notion。程式不保存文章正文、摘要、圖片、作者或標籤；一般來源只處理標題、原始 URL 及日期。
 
@@ -36,11 +36,11 @@ sources:
 
 ## ACRI Notion 同步
 
-- 來源：`https://mbox.acri.gov.tw/TA02.asp`
+- 來源：`https://mboxap.acri.gov.tw/POP30/FAQ/FAQ/GetFaqList`
 - Database ID：`e2c49f31c2424e9db4b37cb662e079ff`
 - 必要欄位：`問題`（title）、`日期`（date）、`編號`（text）、`類別`（select）
 
-ACRI 每次動態讀取最後頁碼並掃描全站，不受每日監控日期區間限制。同一編號已存在時不重複新增；新類別會自動加入 Notion select 選項。
+ACRI 每次依新版公開 FAQ API 回報的總筆數掃描全部分頁，不受每日監控日期區間限制。舊資料使用六碼編號，新版資料使用 UUID；識別碼或問題標題已存在時不重複新增，新類別會自動加入 Notion select 選項。連線逾時、HTTP 408／429 或來源端 5xx 錯誤會等待 30 秒、120 秒後重試；永久性 4xx 錯誤則立即回報。
 
 ## GitHub Secrets
 

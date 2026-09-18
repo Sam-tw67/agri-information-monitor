@@ -65,10 +65,36 @@ def test_hualien_brewing_training_title_is_excluded():
     ]
 
 
+def test_hualien_esg_training_completion_title_is_excluded():
+    titles = [
+        "迎戰永續浪潮！花蓮農改場農業ESG實踐班圓滿結訓",
+        "豪雨後花蓮農改場籲請農友加強田間管理",
+    ]
+    assert _filtered_titles("花蓮農改場－本場新聞", titles) == [
+        "豪雨後花蓮農改場籲請農友加強田間管理"
+    ]
+
+
+def test_hualien_pomelo_training_activity_is_included():
+    title = "文旦中果期栽培管理暨病蟲害防治技術講習會"
+
+    assert _filtered_titles("花蓮農改場－近期活動", [title]) == [title]
+
+
 def test_taoyuan_culture_ministry_community_award_titles_are_excluded():
     titles = [
         "協助文化部公告「第三屆文化部社區營造獎參選簡章」",
         "轉知文化部辦理「第四屆社區營造獎」活動",
+        "桃園農改場辦理作物栽培管理講習會",
+    ]
+    assert _filtered_titles("桃園農改場－活動訊息", titles) == [
+        "桃園農改場辦理作物栽培管理講習會"
+    ]
+
+
+def test_taoyuan_assistance_announcements_are_excluded():
+    titles = [
+        "協助公告~「農業部因應國際情勢農糧產業支持措施作業原則」",
         "桃園農改場辦理作物栽培管理講習會",
     ]
     assert _filtered_titles("桃園農改場－活動訊息", titles) == [

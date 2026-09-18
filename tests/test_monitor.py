@@ -14,6 +14,7 @@ from agri_monitor.scraper import (
     _fda_news_articles,
     _html_candidates,
     _pesticide_news_articles,
+    _tatm_epaper_news_articles,
     _wordpress_posts_articles,
     filter_and_dedupe,
 )
@@ -670,6 +671,70 @@ def test_fda_parser_extracts_publication_date_and_original_url():
             date(2026, 4, 21),
         )
     ]
+
+
+def test_tatm_parser_resolves_title_postbacks_to_external_article_urls():
+    list_url = "https://tatm.moa.gov.tw/Home/EPaperNewsList.aspx"
+    list_html = """
+    <form>
+      <input type="hidden" name="__VIEWSTATE" value="view-state" />
+      <input type="hidden" name="__EVENTVALIDATION" value="event-validation" />
+      <table id="ctl00_ContentPlaceHolder1_gvList">
+        <tr><td><div class="text-success">2026/07/20</div></td><td>
+          <a id="ctl00_ContentPlaceHolder1_gvList_ctl02_lbnUrl"
+             href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gvList$ctl02$lbnUrl','')">First article</a>
+        </td></tr>
+        <tr><td><div class="text-success">2026/07/19</div></td><td>
+          <a id="ctl00_ContentPlaceHolder1_gvList_ctl03_lbnUrl"
+             href="javascript:__doPostBack('ctl00$ContentPlaceHolder1$gvList$ctl03$lbnUrl','')">Second article</a>
+        </td></tr>
+      </table>
+    </form>
+    """
+
+    class FakeResponse:
+        def __init__(self, text):
+            self.text = text
+            self.url = list_url
+
+        def raise_for_status(self):
+            pass
+
+    class FakeSession:
+        def __init__(self):
+            self.posts = []
+
+        def post(self, url, **kwargs):
+            self.posts.append((url, kwargs))
+            external_urls = [
+                "https://example.test/article-1",
+                "https://example.test/article-2",
+            ]
+            return FakeResponse(
+                list_html
+                + f'<script>window.open("{external_urls[len(self.posts) - 1]}", "_blank");</script>'
+            )
+
+    session = FakeSession()
+    assert _tatm_epaper_news_articles(session, list_url, list_html) == [
+        Article("First article", "https://example.test/article-1", date(2026, 7, 20)),
+        Article("Second article", "https://example.test/article-2", date(2026, 7, 19)),
+    ]
+    assert [post[1]["data"]["__EVENTTARGET"] for post in session.posts] == [
+        "ctl00$ContentPlaceHolder1$gvList$ctl02$lbnUrl",
+        "ctl00$ContentPlaceHolder1$gvList$ctl03$lbnUrl",
+    ]
+    assert all(post[1]["data"]["__VIEWSTATE"] == "view-state" for post in session.posts)
+
+
+def test_tatm_source_is_enabled_for_daily_monitoring():
+    source = next(
+        source
+        for source in read_sources("sources.yml")
+        if source.url == "https://tatm.moa.gov.tw/Home/EPaperNewsList.aspx"
+    )
+    assert source.name == "農業技術交易網農業新聞"
+    assert source.parser == "tatm_epaper_news"
 
 
 def test_latest_only_selects_newest_reliable_matching_announcement():
