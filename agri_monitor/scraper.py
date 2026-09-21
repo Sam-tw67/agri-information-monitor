@@ -435,7 +435,7 @@ def _fallback_feed_articles(source: Source, primary_error: SourceFetchError) -> 
     return articles
 
 
-def fetch_source(source: Source) -> list[Article]:
+def _fetch_primary_source(source: Source) -> list[Article]:
     request_url = source.url
     if source.query_keyword:
         parts = urlsplit(request_url)
@@ -448,15 +448,12 @@ def fetch_source(source: Source) -> list[Article]:
     if source.parser == "wordpress_posts_json":
         try:
             content = _curl_get(request_url)
-        except SourceFetchError as exc:
-            return _fallback_feed_articles(source, exc)
+        except SourceFetchError:
+            raise
         articles = _wordpress_posts_articles(content, request_url)
         if not articles:
-            return _fallback_feed_articles(
-                source,
-                SourceFetchError(
-                    f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
-                ),
+            raise SourceFetchError(
+                f"WordPress JSON 列表可讀取，但找不到文章：{request_url}"
             )
         return articles
     if source.parser == "tatm_epaper_news":
@@ -515,8 +512,16 @@ def fetch_source(source: Source) -> list[Article]:
             LOG.warning("RSS/Atom 讀取失敗，改用 HTML：%s (%s)", feed_url, exc)
     candidates = _html_candidates(response.text, response.url)
     if not candidates:
-        LOG.info("來源可讀取但未發現文章候選項目：%s", source.url)
+        raise SourceFetchError(f"來源可讀取但未發現文章候選項目：{request_url}")
     return candidates
+
+
+def fetch_source(source: Source) -> list[Article]:
+    """Read the primary source, then use its RSS fallback for any source failure."""
+    try:
+        return _fetch_primary_source(source)
+    except SourceFetchError as exc:
+        return _fallback_feed_articles(source, exc)
 
 
 def enrich_article(article: Article) -> Article:

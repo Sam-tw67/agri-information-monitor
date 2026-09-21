@@ -396,6 +396,21 @@ def test_hdares_sources_are_official_rss_feeds():
             "https://www.hdares.gov.tw/api.php?func=activity&format=rss",
         ),
     ]
+    assert all(
+        source.fallback_url
+        == "https://news.google.com/rss/search?q=site%3Ahdares.gov.tw"
+        "&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant"
+        for source in hdares
+    )
+
+
+def test_every_enabled_source_has_an_https_fallback():
+    sources = read_sources("sources.yml")
+    assert sources
+    assert all(
+        source.fallback_url.startswith("https://news.google.com/rss/")
+        for source in sources
+    )
 
 
 def test_new_dares_sources_are_configured_for_daily_monitoring():

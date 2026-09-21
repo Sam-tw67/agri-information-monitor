@@ -1,6 +1,7 @@
 sources:
   - website: 花蓮區農業改良場本場新聞
     url: https://www.hdares.gov.tw/api.php?func=news&format=rss
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Ahdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 花蓮農改場－本場新聞
     enabled: true
     exclude_title_patterns:
@@ -9,6 +10,7 @@ sources:
 
   - website: 花蓮區農業改良場最新消息
     url: https://www.hdares.gov.tw/api.php?func=hotnews&format=rss
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Ahdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 花蓮農改場－最新消息
     enabled: true
     exclude_title_patterns:
@@ -20,6 +22,7 @@ sources:
 
   - website: 花蓮區農業改良場近期活動
     url: https://www.hdares.gov.tw/api.php?func=activity&format=rss
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Ahdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 花蓮農改場－近期活動
     enabled: true
     exclude_title_patterns:
@@ -28,6 +31,7 @@ sources:
 
   - website: 桃園區農業改良場活動訊息
     url: https://www.tydares.gov.tw/theme_list.php?theme=activity&sub_theme=
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Atydares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 桃園農改場－活動訊息
     enabled: true
     parser: dares_html_list
@@ -40,12 +44,14 @@ sources:
 
   - website: 苗栗區農業改良場農業新聞
     url: https://www.mdares.gov.tw/theme_list.php?theme=news&sub_theme=agri_news
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Amdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 苗栗農改場－農業新聞
     enabled: true
     parser: dares_html_list
 
   - website: 苗栗區農業改良場最新消息
     url: https://www.mdares.gov.tw/theme_list.php?theme=hotnews_ws
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Amdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 苗栗農改場－最新消息
     enabled: true
     parser: dares_html_list
@@ -54,6 +60,7 @@ sources:
 
   - website: 台中區農業改良場新聞資訊
     url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=news&format=rss
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Atcdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 台中農改場－新聞資訊
     enabled: true
     exclude_title_patterns:
@@ -65,6 +72,7 @@ sources:
 
   - website: 台中區農業改良場最新消息
     url: https://www.tcdares.gov.tw/api.php?theme=news&sub_theme=hot&format=rss
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Atcdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 台中農改場－最新消息
     enabled: true
     exclude_title_patterns:
@@ -76,6 +84,7 @@ sources:
 
   - website: 高雄區農業改良場公告資訊
     url: https://www.kdais.gov.tw/theme_list.php?theme=news&sub_theme=announcement
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Akdais.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 高雄農改場－公告資訊
     enabled: true
     parser: dares_html_list
@@ -91,6 +100,7 @@ sources:
 
   - website: 台南區農業改良場本場快訊
     url: https://www.tndais.gov.tw/theme_list.php?theme=news_list
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Atndais.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 台南農改場－本場快訊
     enabled: true
     parser: dares_html_list
@@ -108,6 +118,7 @@ sources:
 
   - website: 台東區農業改良場新聞
     url: https://www.ttdares.gov.tw/theme_list.php?theme=news&sub_theme=news
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Attdares.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 台東農改場－新聞
     enabled: true
     parser: dares_html_list
@@ -158,6 +169,7 @@ sources:
 
   - website: 農藥資訊服務網
     url: https://pesticide.aphia.gov.tw/information/Data/NewsLast
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Apesticide.aphia.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 農藥與法規修正彙整表
     enabled: true
     include_title_patterns:
@@ -168,11 +180,13 @@ sources:
 
   - website: 疫情預警
     url: https://phis.aphia.gov.tw/list-1-102
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Aphis.aphia.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 植物疫情彙整表
     enabled: true
 
   - website: 衛生福利部食品藥物管理署
     url: https://www.fda.gov.tw/TC/news.aspx?cid=3
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Afda.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 衛福部食藥署
     enabled: true
     parser: fda_news_table
@@ -184,6 +198,7 @@ sources:
 
   - website: 農業技術交易網農業新聞
     url: https://tatm.moa.gov.tw/Home/EPaperNewsList.aspx
+    fallback_url: 'https://news.google.com/rss/search?q=site%3Atatm.moa.gov.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 農業技術交易網農業新聞
     enabled: true
     parser: tatm_epaper_news

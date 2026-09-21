@@ -139,3 +139,66 @@ def test_wordpress_posts_source_uses_configured_rss_fallback_after_curl_403(monk
             date(2026, 7, 30),
         )
     ]
+
+
+def test_generic_source_uses_configured_rss_fallback_after_network_error(monkeypatch):
+    source = Source(
+        "政府來源",
+        "https://agency.gov.tw/news",
+        fallback_url="https://news.google.com/rss/search?q=site%3Aagency.gov.tw",
+    )
+    fallback_response = _response(200, source.fallback_url)
+    fallback_response._content = b"""<?xml version=\"1.0\"?><rss><channel><item>
+      <title>Government fallback article</title>
+      <link>https://news.google.com/rss/articles/example</link>
+      <pubDate>Mon, 21 Sep 2026 03:00:00 +0800</pubDate>
+    </item></channel></rss>"""
+    requested_urls = []
+
+    def get(url):
+        requested_urls.append(url)
+        if url == source.url:
+            raise requests.ConnectionError("network unreachable")
+        return fallback_response
+
+    monkeypatch.setattr(scraper, "_get", get)
+
+    assert scraper.fetch_source(source) == [
+        Article(
+            "Government fallback article",
+            "https://news.google.com/rss/articles/example",
+            date(2026, 9, 21),
+        )
+    ]
+    assert requested_urls == [source.url, source.fallback_url]
+
+
+def test_parser_failure_uses_configured_rss_fallback(monkeypatch):
+    source = Source(
+        "農改場",
+        "https://agency.gov.tw/theme_list.php?theme=news",
+        parser="dares_html_list",
+        fallback_url="https://news.google.com/rss/search?q=site%3Aagency.gov.tw",
+    )
+    primary_response = _response(200, source.url)
+    primary_response._content = b"<html><body>temporary empty page</body></html>"
+    primary_response.encoding = "utf-8"
+    fallback_response = _response(200, source.fallback_url)
+    fallback_response._content = b"""<?xml version=\"1.0\"?><rss><channel><item>
+      <title>Agricultural fallback article</title>
+      <link>https://news.google.com/rss/articles/agri</link>
+      <pubDate>Mon, 21 Sep 2026 04:00:00 +0800</pubDate>
+    </item></channel></rss>"""
+    responses = {
+        source.url: primary_response,
+        source.fallback_url: fallback_response,
+    }
+    monkeypatch.setattr(scraper, "_get", lambda url: responses[url])
+
+    assert scraper.fetch_source(source) == [
+        Article(
+            "Agricultural fallback article",
+            "https://news.google.com/rss/articles/agri",
+            date(2026, 9, 21),
+        )
+    ]

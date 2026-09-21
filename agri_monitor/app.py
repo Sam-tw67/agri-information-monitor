@@ -1,4 +1,5 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import re
@@ -23,6 +24,7 @@ TITLE_DATE_PREFIX = re.compile(r"^\s*\d{2,3}[-/]\d{1,2}[-/]\d{1,2}\s+")
 SOURCE_RETRY_DELAY_SECONDS = 5 * 60
 SYSTEMIC_NETWORK_RETRY_ATTEMPTS = 3
 SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS = 10 * 60
+SOURCE_FETCH_WORKERS = 6
 NETWORK_FAILURE_MARKERS = (
     "Network is unreachable",
     "Failed to establish a new connection",
@@ -121,9 +123,13 @@ def _collect_source_results(
     seen_run_urls: set[str] = set()
     seen_run_titles: set[tuple[date | None, str, str]] = set()
 
+    worker_count = min(SOURCE_FETCH_WORKERS, len(sources))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        fetches = {source: executor.submit(fetch_source, source) for source in sources}
+
     for source in sources:
         try:
-            discovered = fetch_source(source)
+            discovered = fetches[source].result()
             if source.include_title_patterns:
                 before_count = len(discovered)
                 discovered = _apply_source_title_filters(
