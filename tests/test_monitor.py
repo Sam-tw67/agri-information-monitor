@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from pathlib import Path
 
@@ -65,13 +66,14 @@ def test_collect_source_results_only_enriches_articles_without_dates(monkeypatch
 
     monkeypatch.setattr(app, "enrich_article", enrich)
 
-    grouped, failures, failed_sources = app._collect_source_results(
+    grouped, failures, failed_sources, warnings = app._collect_source_results(
         [source], date(2026, 6, 21), date(2026, 6, 21)
     )
 
     assert enriched == [undated]
     assert failures == []
     assert failed_sources == []
+    assert warnings == []
     assert grouped == [
         (
             source,
@@ -114,10 +116,28 @@ def test_page_title_shows_monday_date_range():
     )
 
 
+def test_explicit_run_date_does_not_require_local_timezone_database(monkeypatch):
+    monkeypatch.setattr(
+        app,
+        "ZoneInfo",
+        lambda *_args: pytest.fail("明確指定 run-date 時不應載入時區資料"),
+    )
+    calls = []
+    monkeypatch.setattr(
+        app,
+        "run",
+        lambda run_date, dry_run=False: calls.append((run_date, dry_run)) or 0,
+    )
+    assert app.main(["--dry-run", "--run-date", "2026-10-12"]) == 0
+    assert calls == [(date(2026, 10, 12), True)]
+
+
 def test_github_schedule_runs_monday_through_saturday_at_0737_taipei():
     workflow = Path(".github/workflows/agri-monitor.yml").read_text(encoding="utf-8")
     assert 'cron: "37 23 * * 0-5"' in workflow
     assert 'cron: "0 0 * * 2-6"' not in workflow
+    assert "contents: write" in workflow
+    assert "git add .state/sent_articles.json" in workflow
 
 
 def test_email_only_contains_linked_title_not_body_or_summary():
@@ -210,6 +230,66 @@ def test_formal_run_sends_email_even_when_nothing_is_new(monkeypatch):
     assert len(sent) == 1
     plain = sent[0][0].get_body(preferencelist=("plain",)).get_content()
     assert "以下監控項目無新增項目來源：花蓮改良場、ACRI 農藥問答集。" in plain
+
+
+def test_formal_run_backfills_unsent_article_and_suppresses_it_next_time(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/faq")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    source = Source("花蓮農改場－本場新聞", "https://source.test")
+    old_article = Article(
+        "近期白背飛蝨密度上升",
+        "https://www.hdares.gov.tw/theme_data.php?id=14921",
+        date(2026, 9, 22),
+    )
+    monkeypatch.setattr(app, "read_sources", lambda *args: [source])
+    monkeypatch.setattr(app, "fetch_source", lambda _source: [old_article])
+    monkeypatch.setattr(app, "NotionClient", lambda *args: object())
+    monkeypatch.setattr(
+        app, "sync_acri", lambda *args, **kwargs: AcriSyncResult(0, 0, 0, [], [])
+    )
+    sent = []
+    monkeypatch.setattr(
+        app, "send_report_email", lambda message, **kwargs: sent.append(message)
+    )
+
+    assert app.run(date(2026, 10, 12)) == 0
+    assert app.run(date(2026, 10, 12)) == 0
+    first = sent[0].get_body(preferencelist=("plain",)).get_content()
+    second = sent[1].get_body(preferencelist=("plain",)).get_content()
+    assert "近期白背飛蝨密度上升" in first
+    assert "本次回補過去漏寄文章：1 篇。" in first
+    assert "近期白背飛蝨密度上升" not in second
+    assert Path(os.environ["ARTICLE_STATE_FILE"]).exists()
+
+
+def test_failed_email_does_not_mark_article_as_sent(monkeypatch):
+    monkeypatch.setenv("NOTION_TOKEN", "secret")
+    monkeypatch.setenv("ACRI_NOTION_DATABASE_ID", "acri-db")
+    monkeypatch.setenv("ACRI_SOURCE_URL", "https://acri.test/faq")
+    monkeypatch.setenv("SMTP_USERNAME", "sender@example.com")
+    monkeypatch.setenv("SMTP_APP_PASSWORD", "app-password")
+    monkeypatch.setenv("EMAIL_TO", "reader@example.com")
+    source = Source("來源", "https://source.test")
+    article = Article("文章", "https://source.test/article", date(2026, 10, 11))
+    monkeypatch.setattr(app, "read_sources", lambda *args: [source])
+    monkeypatch.setattr(app, "fetch_source", lambda _source: [article])
+    monkeypatch.setattr(app, "NotionClient", lambda *args: object())
+    monkeypatch.setattr(
+        app, "sync_acri", lambda *args, **kwargs: AcriSyncResult(0, 0, 0, [], [])
+    )
+    monkeypatch.setattr(
+        app,
+        "send_report_email",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("SMTP failure")),
+    )
+
+    with pytest.raises(RuntimeError, match="SMTP failure"):
+        app.run(date(2026, 10, 12))
+    assert not Path(os.environ["ARTICLE_STATE_FILE"]).exists()
 
 
 def test_failed_sources_are_retried_once_before_the_daily_email(monkeypatch):
@@ -350,7 +430,7 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
     config.write_text(
         """sources:
   - website: 上下游新聞
-    url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
+    url: 'https://www.newsmarket.com.tw/wp-json/wp/v2/posts?per_page=100&_fields=link,title,date'
     fallback_url: 'https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 上下游
     enabled: true
@@ -368,7 +448,7 @@ def test_source_config_uses_urls_and_output_headings(tmp_path):
     )
     sources = read_sources(config)
     assert [(source.name, source.url) for source in sources] == [
-        ("上下游", "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date"),
+        ("上下游", "https://www.newsmarket.com.tw/wp-json/wp/v2/posts?per_page=100&_fields=link,title,date"),
         ("農藥與法規修正彙整表", "https://pesticide.aphia.gov.tw/information/Data/NewsLast"),
         ("植物疫情彙整表", "https://phis.aphia.gov.tw/list-1-102"),
     ]
@@ -479,7 +559,7 @@ def test_source_config_reads_exclude_title_patterns():
         "錄取(?:人員)?名單" in pattern
         for pattern in by_name["台中農改場－最新消息"].exclude_title_patterns
     )
-    assert by_name["上下游"].url == "https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date"
+    assert by_name["上下游"].url == "https://www.newsmarket.com.tw/wp-json/wp/v2/posts?per_page=100&_fields=link,title,date"
     assert by_name["上下游"].parser == "wordpress_posts_json"
     assert by_name["上下游"].fallback_url.startswith("https://news.google.com/rss/")
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
@@ -803,3 +883,20 @@ def test_all_empty_sources_are_collapsed_into_one_no_update_summary():
     assert "花蓮農改場－最新消息" not in serialized
     assert "本次無新增項目。" not in serialized
     assert "本週無符合日期區間的新文章。" not in serialized
+
+
+def test_degraded_source_is_warned_and_not_reported_as_no_update():
+    source = Source("花蓮農改場－本場新聞", "https://source.test")
+    message = build_report_email(
+        "日報",
+        [(source, [])],
+        AcriSyncResult(0, 0, 0, [], []),
+        [],
+        source_warnings=[(source.name, "Google News 備援可能漏收")],
+        sender="sender@example.com",
+        recipients=("reader@example.com",),
+    )
+    plain = message.get_body(preferencelist=("plain",)).get_content()
+    assert "[來源降級：結果可能不完整]" in plain
+    assert "Google News 備援可能漏收" in plain
+    assert "以下監控項目無新增項目來源：花蓮改良場" not in plain

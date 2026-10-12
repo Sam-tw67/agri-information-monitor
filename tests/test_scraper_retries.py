@@ -163,13 +163,16 @@ def test_generic_source_uses_configured_rss_fallback_after_network_error(monkeyp
 
     monkeypatch.setattr(scraper, "_get", get)
 
-    assert scraper.fetch_source(source) == [
+    result = scraper.fetch_source(source)
+    assert result == [
         Article(
             "Government fallback article",
             "https://news.google.com/rss/articles/example",
             date(2026, 9, 21),
         )
     ]
+    assert result.degraded_warning is not None
+    assert "可能延遲、漏收" in result.degraded_warning
     assert requested_urls == [source.url, source.fallback_url]
 
 

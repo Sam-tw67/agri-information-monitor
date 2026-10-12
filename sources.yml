@@ -156,7 +156,7 @@ sources:
 
   - website: 上下游新聞
     # WordPress REST API avoids Cloudflare blocking the public RSS feed from GitHub Actions.
-    url: 'https://www.newsmarket.com.tw/?rest_route=/wp/v2/posts&per_page=30&_fields=link,title,date'
+    url: 'https://www.newsmarket.com.tw/wp-json/wp/v2/posts?per_page=100&_fields=link,title,date'
     fallback_url: 'https://news.google.com/rss/search?q=site%3Anewsmarket.com.tw&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
     output_heading: 上下游
     enabled: true

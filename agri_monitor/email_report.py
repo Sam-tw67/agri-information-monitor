@@ -40,14 +40,22 @@ def _report_content(
     grouped_articles: list[tuple[Source, list[Article]]],
     acri_result: AcriSyncResult,
     source_failures: list[tuple[str, str]],
+    source_warnings: list[tuple[str, str]],
+    recovered_count: int,
 ) -> tuple[list[str], list[str]]:
     plain: list[str] = []
     html_parts: list[str] = []
     no_update_labels: list[str] = []
+    warning_sources = {source_name for source_name, _ in source_warnings}
+
+    if recovered_count:
+        message = f"本次回補過去漏寄文章：{recovered_count} 篇。"
+        plain.extend([message, ""])
+        html_parts.append(f"<p><strong>{html.escape(message)}</strong></p>")
 
     for source, articles in grouped_articles:
         if not articles:
-            if source.show_no_update:
+            if source.show_no_update and source.name not in warning_sources:
                 no_update_labels.append(_no_update_label(source.name))
             continue
         plain.append(f"[{source.name}]")
@@ -96,6 +104,17 @@ def _report_content(
         plain.append("")
         html_parts.append("</ul>")
 
+    if source_warnings:
+        plain.append("[來源降級：結果可能不完整]")
+        html_parts.append("<h2>來源降級：結果可能不完整</h2><ul>")
+        for source_name, warning in source_warnings:
+            plain.append(f"- {source_name}：{warning}")
+            html_parts.append(
+                f"<li>{html.escape(source_name)}：{html.escape(warning)}</li>"
+            )
+        plain.append("")
+        html_parts.append("</ul>")
+
     if acri_result.error:
         message = f"ACRI 同步失敗：{acri_result.error}"
         plain.extend([message, ""])
@@ -116,13 +135,20 @@ def build_report_email(
     acri_result: AcriSyncResult,
     source_failures: list[tuple[str, str]],
     *,
+    source_warnings: list[tuple[str, str]] | None = None,
+    recovered_count: int = 0,
     sender: str,
     recipients: tuple[str, ...],
 ) -> EmailMessage:
     article_count = sum(len(articles) for _, articles in grouped_articles)
     acri_count = len(acri_result.created)
+    source_warnings = source_warnings or []
     plain_content, html_content = _report_content(
-        grouped_articles, acri_result, source_failures
+        grouped_articles,
+        acri_result,
+        source_failures,
+        source_warnings,
+        recovered_count,
     )
 
     message = EmailMessage()

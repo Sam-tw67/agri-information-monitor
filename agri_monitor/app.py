@@ -5,7 +5,8 @@ import os
 import re
 import sys
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+from pathlib import Path
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -18,6 +19,7 @@ from .email_report import build_report_email, parse_recipients, send_report_emai
 from .models import AcriSyncResult, Article, Source
 from .notion import NotionClient
 from .scraper import enrich_article, fetch_source, filter_and_dedupe, normalize_url
+from .sent_state import SentArticleState
 
 LOG = logging.getLogger(__name__)
 TITLE_DATE_PREFIX = re.compile(r"^\s*\d{2,3}[-/]\d{1,2}[-/]\d{1,2}\s+")
@@ -25,6 +27,7 @@ SOURCE_RETRY_DELAY_SECONDS = 5 * 60
 SYSTEMIC_NETWORK_RETRY_ATTEMPTS = 3
 SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS = 10 * 60
 SOURCE_FETCH_WORKERS = 6
+DEFAULT_ARTICLE_LOOKBACK_DAYS = 30
 NETWORK_FAILURE_MARKERS = (
     "Network is unreachable",
     "Failed to establish a new connection",
@@ -37,6 +40,17 @@ def _required(name: str) -> str:
     value = os.getenv(name, "").strip()
     if not value:
         raise RuntimeError(f"缺少必要環境變數：{name}")
+    return value
+
+
+def _positive_int_setting(name: str, default: int) -> int:
+    raw = os.getenv(name, str(default)).strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} 必須是整數") from exc
+    if value < 1:
+        raise RuntimeError(f"{name} 必須大於 0")
     return value
 
 
@@ -115,11 +129,13 @@ def _collect_source_results(
     list[tuple[Source, list[Article]]],
     list[tuple[str, str]],
     list[Source],
+    list[tuple[str, str]],
 ]:
     """Fetch a set of sources and return successful results plus failed sources."""
     grouped: list[tuple[Source, list[Article]]] = []
     source_failures: list[tuple[str, str]] = []
     failed_sources: list[Source] = []
+    source_warnings: list[tuple[str, str]] = []
     seen_run_urls: set[str] = set()
     seen_run_titles: set[tuple[date | None, str, str]] = set()
 
@@ -130,6 +146,7 @@ def _collect_source_results(
     for source in sources:
         try:
             discovered = fetches[source].result()
+            degraded_warning = getattr(discovered, "degraded_warning", None)
             if source.include_title_patterns:
                 before_count = len(discovered)
                 discovered = _apply_source_title_filters(
@@ -188,23 +205,43 @@ def _collect_source_results(
                 articles, seen_run_urls, seen_run_titles
             )
             grouped.append((source, unique_articles))
+            if degraded_warning:
+                source_warnings.append((source.name, degraded_warning))
             LOG.info("來源完成：%s，區間內 %d 篇", source.name, len(unique_articles))
         except Exception as exc:
             source_failures.append((source.name, str(exc)))
             failed_sources.append(source)
             LOG.error("來源失敗：%s (%s)", source.name, exc)
 
-    return grouped, source_failures, failed_sources
+    return grouped, source_failures, failed_sources, source_warnings
 
 
 def run(run_date: date, dry_run: bool = False) -> int:
     sources = read_sources(os.getenv("SOURCES_FILE", "sources.yml"))
     LOG.info("從來源設定檔讀取到 %d 個啟用來源", len(sources))
 
-    start_date, end_date = monitoring_window(run_date)
-    title = page_title(start_date, end_date)
+    report_start_date, end_date = monitoring_window(run_date)
+    lookback_days = _positive_int_setting(
+        "ARTICLE_LOOKBACK_DAYS", DEFAULT_ARTICLE_LOOKBACK_DAYS
+    )
+    start_date = min(
+        report_start_date,
+        end_date - timedelta(days=lookback_days - 1),
+    )
+    state_path = Path(
+        os.getenv("ARTICLE_STATE_FILE", ".state/sent_articles.json").strip()
+        or ".state/sent_articles.json"
+    )
+    sent_state = SentArticleState.load(state_path)
+    title = page_title(report_start_date, end_date)
+    LOG.info(
+        "一般來源回溯區間：%s 至 %s；已寄送紀錄 %d 筆",
+        start_date,
+        end_date,
+        len(sent_state.records),
+    )
     token = _required("NOTION_TOKEN")
-    grouped, source_failures, failed_sources = _collect_source_results(
+    grouped, source_failures, failed_sources, source_warnings = _collect_source_results(
         sources, start_date, end_date
     )
     if _all_sources_have_network_failures(source_failures, len(sources)):
@@ -216,9 +253,12 @@ def run(run_date: date, dry_run: bool = False) -> int:
                 SYSTEMIC_NETWORK_RETRY_ATTEMPTS,
             )
             time.sleep(SYSTEMIC_NETWORK_RETRY_DELAY_SECONDS)
-            grouped, source_failures, failed_sources = _collect_source_results(
-                sources, start_date, end_date
-            )
+            (
+                grouped,
+                source_failures,
+                failed_sources,
+                source_warnings,
+            ) = _collect_source_results(sources, start_date, end_date)
             if not _all_sources_have_network_failures(source_failures, len(sources)):
                 break
     if failed_sources and not _all_sources_have_network_failures(
@@ -230,9 +270,13 @@ def run(run_date: date, dry_run: bool = False) -> int:
             SOURCE_RETRY_DELAY_SECONDS // 60,
         )
         time.sleep(SOURCE_RETRY_DELAY_SECONDS)
-        retried_grouped, source_failures, failed_sources = _collect_source_results(
-            failed_sources, start_date, end_date
-        )
+        (
+            retried_grouped,
+            source_failures,
+            failed_sources,
+            retried_warnings,
+        ) = _collect_source_results(failed_sources, start_date, end_date)
+        source_warnings.extend(retried_warnings)
         articles_by_source = dict(grouped)
         articles_by_source.update(dict(retried_grouped))
         grouped = [
@@ -241,6 +285,14 @@ def run(run_date: date, dry_run: bool = False) -> int:
             if source in articles_by_source
         ]
     failures = len(source_failures)
+    grouped = sent_state.filter_unsent(grouped)
+    recovered_count = sum(
+        1
+        for _, articles in grouped
+        for article in articles
+        if article.published_date is not None
+        and article.published_date < report_start_date
+    )
 
     try:
         acri_client = NotionClient(
@@ -274,7 +326,7 @@ def run(run_date: date, dry_run: bool = False) -> int:
         )
         print(
             f"DRY-RUN report={title} articles={article_count} "
-            f"acri_new={acri_result.planned_count}"
+            f"recovered={recovered_count} acri_new={acri_result.planned_count}"
         )
         return 1 if acri_result.error else 0
 
@@ -289,6 +341,8 @@ def run(run_date: date, dry_run: bool = False) -> int:
         grouped,
         acri_result,
         source_failures,
+        source_warnings=source_warnings,
+        recovered_count=recovered_count,
         sender=username,
         recipients=recipients,
     )
@@ -299,9 +353,13 @@ def run(run_date: date, dry_run: bool = False) -> int:
         username=username,
         password=_required("SMTP_APP_PASSWORD"),
     )
+    if article_count:
+        sent_state.record_sent(grouped, run_date)
+        sent_state.save(state_path, run_date)
+        LOG.info("已更新一般文章寄送紀錄：%s", state_path)
     print(
         f"Email sent: {title}; articles={article_count}; "
-        f"acri_created={len(acri_result.created)}"
+        f"recovered={recovered_count}; acri_created={len(acri_result.created)}"
     )
     if failures == len(sources) and acri_result.error:
         raise RuntimeError("全部一般來源與 ACRI 皆失敗；錯誤報告已寄出")
@@ -329,8 +387,11 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     try:
-        timezone = ZoneInfo(os.getenv("TIMEZONE", "Asia/Taipei"))
-        effective_date = args.run_date or datetime.now(timezone).date()
+        if args.run_date is not None:
+            effective_date = args.run_date
+        else:
+            timezone = ZoneInfo(os.getenv("TIMEZONE", "Asia/Taipei"))
+            effective_date = datetime.now(timezone).date()
         return run(effective_date, args.dry_run)
     except Exception as exc:
         LOG.exception("任務失敗：%s", exc)

@@ -38,6 +38,19 @@ class SourceFetchError(RuntimeError):
     pass
 
 
+class FetchedArticles(list[Article]):
+    """Article list carrying a warning when only a partial fallback was available."""
+
+    def __init__(
+        self,
+        articles: list[Article],
+        *,
+        degraded_warning: str | None = None,
+    ) -> None:
+        super().__init__(articles)
+        self.degraded_warning = degraded_warning
+
+
 def normalize_url(url: str) -> str:
     parts = urlsplit(url.strip())
     scheme = parts.scheme.lower() or "https"
@@ -415,7 +428,9 @@ def _curl_get(url: str) -> bytes:
     return completed.stdout
 
 
-def _fallback_feed_articles(source: Source, primary_error: SourceFetchError) -> list[Article]:
+def _fallback_feed_articles(
+    source: Source, primary_error: SourceFetchError
+) -> FetchedArticles:
     """Read a configured RSS fallback when a primary source blocks the runner."""
     if not source.fallback_url:
         raise primary_error
@@ -432,7 +447,14 @@ def _fallback_feed_articles(source: Source, primary_error: SourceFetchError) -> 
             f"{primary_error}；備援來源可讀取，但找不到文章：{source.fallback_url}"
         )
     LOG.warning("主要來源讀取失敗，改用備援 RSS：%s", source.name)
-    return articles
+    return FetchedArticles(
+        articles,
+        degraded_warning=(
+            "主要來源無法讀取，目前僅使用 Google News 提示性備援；"
+            "備援可能延遲、漏收或無法正確區分網站欄目。"
+            f"原始錯誤：{primary_error}"
+        ),
+    )
 
 
 def _fetch_primary_source(source: Source) -> list[Article]:
@@ -516,10 +538,10 @@ def _fetch_primary_source(source: Source) -> list[Article]:
     return candidates
 
 
-def fetch_source(source: Source) -> list[Article]:
-    """Read the primary source, then use its RSS fallback for any source failure."""
+def fetch_source(source: Source) -> FetchedArticles:
+    """Read the primary source and explicitly mark partial fallback results."""
     try:
-        return _fetch_primary_source(source)
+        return FetchedArticles(_fetch_primary_source(source))
     except SourceFetchError as exc:
         return _fallback_feed_articles(source, exc)
 
