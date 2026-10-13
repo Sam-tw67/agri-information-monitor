@@ -1,5 +1,363 @@
 {
   "version": 1,
-  "updated_on": null,
-  "sent_articles": []
+  "updated_on": "2026-10-13",
+  "sent_articles": [
+    {
+      "url": "https://udn.com/news/story/7241/9751354",
+      "title": "台灣蝴蝶蘭、火鶴花綻放南半球！已有三批切花成功出口「這一國」",
+      "published_date": "2026-09-13",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.cna.com.tw/news/afe/202609130025.aspx",
+      "title": "蛋殼上食安革命／逐顆噴印上路　一顆0.5元成本藏台灣全面洗選魔鬼細節",
+      "published_date": "2026-09-13",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242379",
+      "title": "這場漁電共生來真的！逸隆家高科技養頂級鰻魚，光電收入為高投資補血，闖出養殖賺錢新路",
+      "published_date": "2026-09-14",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172495",
+      "title": "嘉義市水稻病蟲害陸續發生，籲請農友加強田間巡查及防治。嘉義市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-09-14",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.foodnext.net/science/machining/paper/6611194866",
+      "title": "巧克力、烘焙與植物肉都能用！微生物如何將廢棄物轉成油脂？",
+      "published_date": "2026-09-14",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242352",
+      "title": "台中港填海重創白海豚，環團告 6 機關 17 首長「舊案掩護新案」，為百億工程開後門",
+      "published_date": "2026-09-15",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242409",
+      "title": "沒人願替森林發聲，83 歲蔣媽上場選議員，守護高雄橋頭糖廠百頃森林",
+      "published_date": "2026-09-15",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172494",
+      "title": "近期中南部連續降雨溼度高，籲請農友注意蔥蒜類病害防治。臺南區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-09-15",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://udn.com/news/story/7266/9755620",
+      "title": "有效提升採蜜力30% 苗改場養出新蜂種今轉移太平蜂農",
+      "published_date": "2026-09-15",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242475",
+      "title": "【投書】宜蘭小農找不到通路，縣農會黃金空間卻當網拍倉庫，呼籲打造農產展售基地",
+      "published_date": "2026-09-16",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.tlri.gov.tw/view.php?id=83&subtheme=&theme=NewsPressRelease",
+      "title": "畜試所攜手業者成功培育「安格斯黃牛」 國產肉牛育種新突破",
+      "published_date": "2026-09-16",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242472",
+      "title": "歷經風雨，麻豆文旦終於回春，雖減產三成，大果變多，品質依舊甘甜美味",
+      "published_date": "2026-09-17",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242470",
+      "title": "郭家文旦四冠王秘密，獨家肥料配方、土壤礦物質讓水果更甜，二代接棒勇奪特等獎",
+      "published_date": "2026-09-17",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://news.ltn.com.tw/news/life/breakingnews/5576844",
+      "title": "揭海洋酸化致烏賊大腦縮小 中研院科研引國際媒體關注",
+      "published_date": "2026-09-17",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242551",
+      "title": "01 漫長的等待》從復耕無期到永久失地，光復農民災後一年，仍在困境裡",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242553",
+      "title": "02 再次失土》防災工程壓進農田，鳳林農民「良田變土方」才復耕又失去土地",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242555",
+      "title": "03 以防洪之名》逃過天災卻躲不過防洪工程，農田被徵收、家園迫遷、部落憂倒灌",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242557",
+      "title": "04 被困住的部落》內水排不出、遷居走不了，加里洞與阿陶莫的生存困局",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242641",
+      "title": "05 被犧牲的正義》工程凌駕法理，重建的行政暴力讓居民二度受災",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242624",
+      "title": "06 在地的力量》馬太鞍青年災後結盟，從自救、法律到防災，為家鄉長出自主力量",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242701",
+      "title": "【附錄】馬太鞍溪治水檔案：300 億治水難解億方土砂，懸河危機下的土地代價",
+      "published_date": "2026-09-18",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242809",
+      "title": "千公頃漁電共生帝國崩盤，誠新集團高層遭收押，數百公頃案場成「爛尾樓」",
+      "published_date": "2026-09-21",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242854",
+      "title": "馬太鞍災後一年，部落控「重建變二次災害」，土地遭粗暴徵收、體制失能",
+      "published_date": "2026-09-21",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242891",
+      "title": "（獨家）「台灣花枝丸」原料超過九成進口，多以低價魷魚「化學脫酸」混充，恐重金屬殘留",
+      "published_date": "2026-09-22",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.tlri.gov.tw/view.php?id=84&subtheme=&theme=NewsPressRelease",
+      "title": "樹薯與碎糙米取代玉米的養豬效果",
+      "published_date": "2026-09-22",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242953",
+      "title": "2026從合作社出發_國際論壇暨工作坊｜10月24–25日邀請您一起加入",
+      "published_date": "2026-09-23",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/242958",
+      "title": "沙崙園區》環評激辯 8 小時，草鴞棲地衝擊難解，「生態保育協作平台」遭質疑為開發背書",
+      "published_date": "2026-09-23",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.foodnext.net/science/technology/paper/6731200657",
+      "title": "洋香瓜新品種「台中3號」登場！果肉占比逾8成、最高糖度17.1度　夏季也能穩定栽培",
+      "published_date": "2026-09-23",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.tari.gov.tw/news/index-1.asp?Parser=9%2C4%2C25%2C%2C%2C%2C5659",
+      "title": "發酵熟成大豆鮮味粉新技術亮相 低鈉、低糖翻轉天然調味新食尚",
+      "published_date": "2026-09-23",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243010",
+      "title": "日本貓老師愛上的台灣：古坑山峰華德福實小的校園午餐，料理、山村與自然",
+      "published_date": "2026-09-24",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172497",
+      "title": "臺中市部分區域東方果實蠅成蟲密度升高，籲請農友加強田間巡查，並落實防治工作。臺中市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-09-24",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.agriharvest.tw/archives/139003",
+      "title": "文旦柚外銷已逾2千公噸 銷加拿大再添1櫃 秋節後到港、主打白人市場",
+      "published_date": "2026-09-24",
+      "source": "農業技術交易網農業新聞",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243049",
+      "title": "挪威鯖魚為何越來越貴？油脂豐厚背後，一場全球漁業資源爭奪戰",
+      "published_date": "2026-09-29",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243098",
+      "title": "從阿里山石縫長出的「未來米」，三款超級耐旱水稻誕生，一年能省 400 座水庫",
+      "published_date": "2026-09-30",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243145",
+      "title": "選樹不選黨，83 歲森林阿嬤代表「糖廠守護陣營」參選市議員，邀全國民眾一起當靠山",
+      "published_date": "2026-09-30",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172498",
+      "title": "彰化縣部分地區二期水稻已陸續進入抽穗期，稻熱病(穗稻熱病)及白葉枯病陸續發生，籲請農民加強防範工作。彰化縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-09-30",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243096",
+      "title": "從鳳梨農之子到十大傑出農業專家，黃文理將研究種進田裡，開創「節水稻米」奇蹟",
+      "published_date": "2026-10-01",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243171",
+      "title": "「小地主大佃農」15年驚傳退場，資源轉向集團契作、雜糧，青農憂消滅水稻、向大資本傾斜",
+      "published_date": "2026-10-02",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243216",
+      "title": "當挪威鯖魚變貴，台灣鯖魚是否能升級搶市場？日本鯖魚蓄養產業給台灣的一堂課",
+      "published_date": "2026-10-05",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172499",
+      "title": "苗栗縣部分地區二期水稻已陸續進入孕穗期，田區已發現瘤野螟危害情形，籲請農友加強防治。苗栗區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-05",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243256",
+      "title": "一支麻竹筍翻轉山村，「筍友部落」不用重鹽，泉水洗淨高溫殺菌，安心與竹筍交朋友",
+      "published_date": "2026-10-06",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243276",
+      "title": "2025 糧食年報 01》糧食自給率 30.4%，史上第二低，價格自給率僅 57.2%，創歷史新低",
+      "published_date": "2026-10-07",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243310",
+      "title": "2025 糧食年報 04》鮮奶、雞蛋消費量雙創十年新高，水產品重挫14%",
+      "published_date": "2026-10-07",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243317",
+      "title": "南方澳金鉤蝦進入產季 日曬、脫殼與近海小蝦的加工考驗",
+      "published_date": "2026-10-07",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243280",
+      "title": "2025 糧食年報 02》台灣蔬果防線失守，水果自給率史上新低，蔬菜價格自給率首度跌破八成",
+      "published_date": "2026-10-08",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172501",
+      "title": "彰化縣9月底至10月上旬調查之斜紋夜蛾密度已達黃燈警戒。籲請農民加強防範工作。彰化縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-08",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172500",
+      "title": "桃園市水稻白葉枯病現蹤，近期氣候有利病害發生與蔓延，籲請農友加強防範工作。桃園市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-08",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172502",
+      "title": "近期桃園市觀音區銀葉粉蝨密度持續達預警標準，籲請農友加強防範工作。桃園市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-08",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243308",
+      "title": "2025 糧食年報 03》台灣人吃肉比主食更多，年吃肉91.6公斤創新高，雞肉首度突破百萬噸",
+      "published_date": "2026-10-12",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243442",
+      "title": "EP 136：被人禍掩埋的馬太鞍重建，工程思維下的土地悲歌",
+      "published_date": "2026-10-12",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243418",
+      "title": "中國劣質餐具大量湧台，紙碗、紙蓋塑膠溶出，最高超標百倍，違規容器 95%來自中國",
+      "published_date": "2026-10-12",
+      "source": "上下游",
+      "sent_on": "2026-10-13"
+    }
+  ]
 }
