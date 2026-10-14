@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-13",
+  "updated_on": "2026-10-14",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -358,6 +358,13 @@
       "published_date": "2026-10-12",
       "source": "上下游",
       "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172506",
+      "title": "秋老虎來襲！茄子銀葉粉蝨危害升溫，農友應提高警覺。高雄區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-13",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-14"
     }
   ]
 }
