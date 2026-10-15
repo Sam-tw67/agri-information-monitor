@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-14",
+  "updated_on": "2026-10-15",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -365,6 +365,13 @@
       "published_date": "2026-10-13",
       "source": "植物疫情彙整表",
       "sent_on": "2026-10-14"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243449",
+      "title": "誠新漁電爛尾案》從詐貸47億到資產轉移疑雲，關係企業忙切割，地主恐揹巨額爛帳",
+      "published_date": "2026-10-14",
+      "source": "上下游",
+      "sent_on": "2026-10-15"
     }
   ]
 }
