@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-15",
+  "updated_on": "2026-10-16",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -372,6 +372,13 @@
       "published_date": "2026-10-14",
       "source": "上下游",
       "sent_on": "2026-10-15"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243524",
+      "title": "史上首次，台灣農民與職人在國家歌劇院上菜！上下游「風的餐桌」獨特風土盛宴",
+      "published_date": "2026-10-15",
+      "source": "上下游",
+      "sent_on": "2026-10-16"
     }
   ]
 }
