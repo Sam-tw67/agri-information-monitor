@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-16",
+  "updated_on": "2026-10-17",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -171,6 +171,13 @@
       "sent_on": "2026-10-13"
     },
     {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172496",
+      "title": "鹿野鄉水稻白葉枯病現蹤，臺東場籲農友加強防治。臺東區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-09-22",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-17"
+    },
+    {
       "url": "https://www.tlri.gov.tw/view.php?id=84&subtheme=&theme=NewsPressRelease",
       "title": "樹薯與碎糙米取代玉米的養豬效果",
       "published_date": "2026-09-22",
@@ -204,6 +211,13 @@
       "published_date": "2026-09-23",
       "source": "農業技術交易網農業新聞",
       "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://kmweb.moa.gov.tw/theme_data.php?id=101369&sub_theme=attention&theme=news",
+      "title": "近期白背飛蝨密度上升 敬請農友加強巡田並立即防治",
+      "published_date": "2026-09-23",
+      "source": "農業知識入口網－農改場農情關注站",
+      "sent_on": "2026-10-17"
     },
     {
       "url": "https://www.newsmarket.com.tw/blog/243010",
@@ -253,6 +267,13 @@
       "published_date": "2026-09-30",
       "source": "植物疫情彙整表",
       "sent_on": "2026-10-13"
+    },
+    {
+      "url": "https://kmweb.moa.gov.tw/theme_data.php?id=101479&sub_theme=attention&theme=news",
+      "title": "小型農機具操作與保養檢修班 培養農友安全操作及養護技能",
+      "published_date": "2026-09-30",
+      "source": "農業知識入口網－農改場農情關注站",
+      "sent_on": "2026-10-17"
     },
     {
       "url": "https://www.newsmarket.com.tw/blog/243096",
@@ -379,6 +400,20 @@
       "published_date": "2026-10-15",
       "source": "上下游",
       "sent_on": "2026-10-16"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172508",
+      "title": "本市部分地區斜紋夜蛾成蟲密度偏高，籲請農友加強田間巡查，並落實防治工作，避免蟲害蔓延擴散。臺中市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-16",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-17"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172507",
+      "title": "花蓮縣葉稻熱病、穗稻熱病與水稻白葉枯病已現蹤，籲請農民加強防範工作。花蓮縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-16",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-17"
     }
   ]
 }
