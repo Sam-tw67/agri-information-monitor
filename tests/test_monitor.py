@@ -138,6 +138,7 @@ def test_github_schedule_runs_monday_through_saturday_at_0737_taipei():
     assert 'cron: "0 0 * * 2-6"' not in workflow
     assert "contents: write" in workflow
     assert "git add .state/sent_articles.json" in workflow
+    assert "windows-latest" in workflow
 
 
 def test_email_only_contains_linked_title_not_body_or_summary():
