@@ -154,11 +154,11 @@ sources:
     enabled: false
     parser: dares_html_list
 
-  - website: 農業知識入口網農情關注站
-    # 農業部官方跨機關彙整頁；在各農改場網站封鎖 GitHub 主機時補收重要農情消息。
+  - website: 農業知識入口網農改場農情關注站
+    # 農業部官方彙整頁；只保留目前監控之農改場發布者的重要農情消息。
     url: 'https://kmweb.moa.gov.tw/theme_list.php?theme=news&sub_theme=attention'
     fallback_url: 'https://news.google.com/rss/search?q=site%3Akmweb.moa.gov.tw%2Ftheme_data.php%20sub_theme%3Aattention&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant'
-    output_heading: 農業知識入口網－農情關注站
+    output_heading: 農業知識入口網－農改場農情關注站
     enabled: true
     parser: kmweb_news_list
     show_no_update: false

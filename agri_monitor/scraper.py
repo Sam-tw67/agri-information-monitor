@@ -18,6 +18,9 @@ LOG = logging.getLogger(__name__)
 USER_AGENT = "AgriInformationMonitor/1.0 (+scheduled metadata-only monitor)"
 REQUEST_RETRY_DELAYS = (5,)
 KMWEB_MAX_PAGES = 12
+KMWEB_DARES_PUBLISHER = re.compile(
+    r"(?:花蓮|桃園|苗栗|臺中|台中|臺南|台南|高雄|臺東|台東)區農業改良場"
+)
 TRACKING_KEYS = {"fbclid", "gclid", "dclid", "mc_cid", "mc_eid", "ref", "source"}
 DATE_META_KEYS = {
     "article:published_time", "datepublished", "date", "publishdate", "pubdate",
@@ -297,6 +300,9 @@ def _kmweb_news_page_articles(html: str, base_url: str) -> list[Article]:
         link = item.select_one("a.title[href]")
         if link is None:
             continue
+        publisher = _text_from_first(item, ".akind")
+        if not KMWEB_DARES_PUBLISHER.search(publisher):
+            continue
         title = str(link.get("title") or link.get_text(" ", strip=True)).strip()
         url = urljoin(base_url, str(link.get("href") or ""))
         published = _parse_date(_text_from_first(item, ".adate"))
@@ -346,8 +352,9 @@ def _kmweb_news_list_articles(
             LOG.warning("農業知識入口網第 %d 頁讀取失敗，繼續下一頁：%s", page, exc)
             continue
         page_articles = _kmweb_news_page_articles(response.text, response.url)
-        if not page_articles or append_new(page_articles) == 0:
+        if not BeautifulSoup(response.text, "html.parser").select_one(".artitem"):
             break
+        append_new(page_articles)
     return articles
 
 

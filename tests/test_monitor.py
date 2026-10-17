@@ -566,8 +566,8 @@ def test_source_config_reads_exclude_title_patterns():
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
     assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
     assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
-    assert by_name["農業知識入口網－農情關注站"].parser == "kmweb_news_list"
-    assert not by_name["農業知識入口網－農情關注站"].show_no_update
+    assert by_name["農業知識入口網－農改場農情關注站"].parser == "kmweb_news_list"
+    assert not by_name["農業知識入口網－農改場農情關注站"].show_no_update
 
 
 def test_source_title_exclude_patterns_remove_unwanted_categories():
@@ -705,7 +705,9 @@ def test_dares_html_list_parser_extracts_roc_dates_titles_and_urls():
 def test_kmweb_paginated_parser_finds_hualien_alert_on_later_page(monkeypatch):
     first_page = """
     <div class="artitem"><a class="title" href="theme_data.php?id=1">首頁文章</a>
-      <div class="adate">115/10/16</div></div>
+      <div class="adate">115/10/16</div><div class="akind">臺中區農業改良場</div></div>
+    <div class="artitem"><a class="title" href="theme_data.php?id=2">其他機關文章</a>
+      <div class="adate">115/10/16</div><div class="akind">林業及自然保育署</div></div>
     """
     second_page = """
     <div class="artitem">
@@ -739,6 +741,7 @@ def test_kmweb_paginated_parser_finds_hualien_alert_on_later_page(monkeypatch):
         "https://kmweb.moa.gov.tw/theme_data.php?theme=news&sub_theme=attention&id=101369",
         date(2026, 9, 23),
     )
+    assert len(articles) == 2
     assert requested == [
         f"{list_url}&page=2",
         f"{list_url}&page=3",
