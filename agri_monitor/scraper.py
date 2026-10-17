@@ -17,6 +17,7 @@ from .models import Article, Source
 LOG = logging.getLogger(__name__)
 USER_AGENT = "AgriInformationMonitor/1.0 (+scheduled metadata-only monitor)"
 REQUEST_RETRY_DELAYS = (5,)
+KMWEB_MAX_PAGES = 12
 TRACKING_KEYS = {"fbclid", "gclid", "dclid", "mc_cid", "mc_eid", "ref", "source"}
 DATE_META_KEYS = {
     "article:published_time", "datepublished", "date", "publishdate", "pubdate",
@@ -288,6 +289,68 @@ def _dares_html_list_articles(html: str, base_url: str) -> list[Article]:
     return articles
 
 
+def _kmweb_news_page_articles(html: str, base_url: str) -> list[Article]:
+    """Parse one official MOA Knowledge Portal news-list page."""
+    soup = BeautifulSoup(html, "html.parser")
+    articles: list[Article] = []
+    for item in soup.select(".artitem"):
+        link = item.select_one("a.title[href]")
+        if link is None:
+            continue
+        title = str(link.get("title") or link.get_text(" ", strip=True)).strip()
+        url = urljoin(base_url, str(link.get("href") or ""))
+        published = _parse_date(_text_from_first(item, ".adate"))
+        if len(title) < 4 or urlsplit(url).scheme not in {"http", "https"}:
+            continue
+        articles.append(Article(title, url, published))
+    return articles
+
+
+def _url_with_page(url: str, page: int) -> str:
+    parts = urlsplit(url)
+    query = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if key.lower() != "page"
+    ]
+    query.append(("page", str(page)))
+    return urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+    )
+
+
+def _kmweb_news_list_articles(
+    first_page_html: str, list_url: str
+) -> list[Article]:
+    """Read enough paginated MOA news to cover the monitor's 30-day backfill."""
+    articles: list[Article] = []
+    seen: set[str] = set()
+
+    def append_new(page_articles: list[Article]) -> int:
+        added = 0
+        for article in page_articles:
+            key = normalize_url(article.url)
+            if key in seen:
+                continue
+            seen.add(key)
+            articles.append(article)
+            added += 1
+        return added
+
+    append_new(_kmweb_news_page_articles(first_page_html, list_url))
+    for page in range(2, KMWEB_MAX_PAGES + 1):
+        page_url = _url_with_page(list_url, page)
+        try:
+            response = _get(page_url)
+        except requests.RequestException as exc:
+            LOG.warning("農業知識入口網第 %d 頁讀取失敗，繼續下一頁：%s", page, exc)
+            continue
+        page_articles = _kmweb_news_page_articles(response.text, response.url)
+        if not page_articles or append_new(page_articles) == 0:
+            break
+    return articles
+
+
 def _pesticide_news_articles(html: str, base_url: str) -> list[Article]:
     soup = BeautifulSoup(html, "html.parser")
     articles = []
@@ -501,6 +564,13 @@ def _fetch_primary_source(source: Source) -> list[Article]:
         if not articles:
             raise SourceFetchError(
                 f"農改場清單頁沒有解析到任何標題連結：{request_url}"
+            )
+        return articles
+    if source.parser == "kmweb_news_list":
+        articles = _kmweb_news_list_articles(response.text, response.url)
+        if not articles:
+            raise SourceFetchError(
+                f"農業知識入口網清單頁沒有解析到任何標題連結：{request_url}"
             )
         return articles
     if source.parser == "fda_news_table":

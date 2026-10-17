@@ -43,6 +43,23 @@ def test_state_title_signature_matches_google_news_and_official_urls():
     assert state.is_sent(official_article)
 
 
+def test_state_matches_official_mirror_when_dates_differ_by_one_day():
+    source = Source("農業知識入口網", "https://kmweb.moa.gov.tw")
+    mirror = Article(
+        "近期白背飛蝨密度上升 敬請農友加強巡田並立即防治",
+        "https://kmweb.moa.gov.tw/theme_data.php?id=101369",
+        date(2026, 9, 23),
+    )
+    original = Article(
+        mirror.title,
+        "https://www.hdares.gov.tw/theme_data.php?id=14921",
+        date(2026, 9, 22),
+    )
+    state = SentArticleState()
+    state.record_sent([(source, [mirror])], date(2026, 10, 17))
+    assert state.is_sent(original)
+
+
 def test_state_prunes_records_older_than_retention_window():
     source = Source("來源", "https://source.test")
     old = Article("舊文章", "https://example.test/old", date(2025, 1, 1))

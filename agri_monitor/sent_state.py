@@ -86,6 +86,14 @@ class SentArticleState:
             _signature(record.title, record.published_date.isoformat(), record.url)
             for record in self.records
         }
+        self._title_dates: dict[str, set[date]] = {}
+        for record in self.records:
+            hostname = (urlsplit(record.url).hostname or "").lower()
+            title = _normalized_title(
+                record.title,
+                strip_publisher=hostname == "news.google.com",
+            )
+            self._title_dates.setdefault(title, set()).add(record.published_date)
 
     @classmethod
     def load(cls, path: Path) -> "SentArticleState":
@@ -103,9 +111,21 @@ class SentArticleState:
         return cls([SentArticleRecord.from_dict(value) for value in values])
 
     def is_sent(self, article: Article) -> bool:
-        return (
+        if (
             _article_url_key(article) in self._urls
             or _article_signature(article) in self._signatures
+        ):
+            return True
+        if article.published_date is None:
+            return False
+        hostname = (urlsplit(article.canonical_url or article.url).hostname or "").lower()
+        title = _normalized_title(
+            article.title,
+            strip_publisher=hostname == "news.google.com",
+        )
+        return any(
+            abs((article.published_date - sent_date).days) <= 1
+            for sent_date in self._title_dates.get(title, set())
         )
 
     def filter_unsent(

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from agri_monitor import app
+from agri_monitor import app, scraper
 from agri_monitor.config import read_sources
 from agri_monitor.dates import monitoring_window, page_title
 from agri_monitor.email_report import build_report_email
@@ -14,6 +14,7 @@ from agri_monitor.scraper import (
     _feed_articles,
     _fda_news_articles,
     _html_candidates,
+    _kmweb_news_list_articles,
     _pesticide_news_articles,
     _tatm_epaper_news_articles,
     _wordpress_posts_articles,
@@ -138,7 +139,6 @@ def test_github_schedule_runs_monday_through_saturday_at_0737_taipei():
     assert 'cron: "0 0 * * 2-6"' not in workflow
     assert "contents: write" in workflow
     assert "git add .state/sent_articles.json" in workflow
-    assert "windows-latest" in workflow
 
 
 def test_email_only_contains_linked_title_not_body_or_summary():
@@ -566,6 +566,8 @@ def test_source_config_reads_exclude_title_patterns():
     assert "營養午餐|午餐法" in by_name["上下游"].exclude_title_patterns
     assert by_name["農藥與法規修正彙整表"].exclude_title_patterns == ()
     assert by_name["植物疫情彙整表"].exclude_title_patterns == ()
+    assert by_name["農業知識入口網－農情關注站"].parser == "kmweb_news_list"
+    assert not by_name["農業知識入口網－農情關注站"].show_no_update
 
 
 def test_source_title_exclude_patterns_remove_unwanted_categories():
@@ -583,7 +585,7 @@ def test_source_title_exclude_patterns_remove_unwanted_categories():
     assert app._apply_source_title_filters(source, articles) == [articles[2]]
 
 
-def test_run_level_dedupe_skips_same_day_same_site_same_title():
+def test_run_level_dedupe_skips_mirrored_title_with_one_day_date_difference():
     articles = [
         Article(
             "豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!",
@@ -598,10 +600,10 @@ def test_run_level_dedupe_skips_same_day_same_site_same_title():
         Article(
             "豪雨後，臺中農改場籲請農友儘速做好作物復耕復育措施!",
             "https://elsewhere.test/theme_data.php?id=16193",
-            date(2026, 6, 29),
+            date(2026, 6, 30),
         ),
     ]
-    assert app._dedupe_run_articles(articles, set(), set()) == [articles[0], articles[2]]
+    assert app._dedupe_run_articles(articles, set(), set()) == [articles[0]]
 
 
 def test_acri_failure_sends_error_email_then_marks_run_failed(monkeypatch):
@@ -697,6 +699,49 @@ def test_dares_html_list_parser_extracts_roc_dates_titles_and_urls():
             "https://www.tydares.gov.tw/theme_data.php?theme=hotnews_ws&id=2",
             date(2026, 5, 9),
         ),
+    ]
+
+
+def test_kmweb_paginated_parser_finds_hualien_alert_on_later_page(monkeypatch):
+    first_page = """
+    <div class="artitem"><a class="title" href="theme_data.php?id=1">首頁文章</a>
+      <div class="adate">115/10/16</div></div>
+    """
+    second_page = """
+    <div class="artitem">
+      <a class="title" href="theme_data.php?theme=news&amp;sub_theme=attention&amp;id=101369"
+         title="近期白背飛蝨密度上升 敬請農友加強巡田並立即防治">
+        近期白背飛蝨密度上升 敬請農友加強巡田並立即防治
+      </a>
+      <div class="adate">115/09/23</div>
+      <div class="akind">花蓮區農業改良場</div>
+    </div>
+    """
+
+    class Response:
+        def __init__(self, text, url):
+            self.text = text
+            self.url = url
+
+    requested = []
+
+    def get(url):
+        requested.append(url)
+        page = 2 if "page=2" in url else 3
+        return Response(second_page if page == 2 else "<html></html>", url)
+
+    monkeypatch.setattr(scraper, "_get", get)
+    list_url = "https://kmweb.moa.gov.tw/theme_list.php?theme=news&sub_theme=attention"
+    articles = _kmweb_news_list_articles(first_page, list_url)
+
+    assert articles[1] == Article(
+        "近期白背飛蝨密度上升 敬請農友加強巡田並立即防治",
+        "https://kmweb.moa.gov.tw/theme_data.php?theme=news&sub_theme=attention&id=101369",
+        date(2026, 9, 23),
+    )
+    assert requested == [
+        f"{list_url}&page=2",
+        f"{list_url}&page=3",
     ]
 
 

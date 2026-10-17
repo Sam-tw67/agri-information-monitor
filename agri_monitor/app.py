@@ -7,7 +7,6 @@ import sys
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -96,27 +95,28 @@ def _normalized_title(title: str) -> str:
     return re.sub(r"\s+", " ", title).strip()
 
 
-def _article_hostname(article: Article) -> str:
-    return urlsplit(article.canonical_url or article.url).netloc.lower()
-
-
 def _dedupe_run_articles(
     articles: list[Article],
     seen_run_urls: set[str],
-    seen_run_titles: set[tuple[date | None, str, str]],
+    seen_run_titles: set[tuple[date | None, str]],
 ) -> list[Article]:
     unique_articles = []
     for article in articles:
         url_key = normalize_url(article.canonical_url or article.url)
-        title_key = (
-            article.published_date,
-            _article_hostname(article),
-            _normalized_title(article.title),
-        )
-        if url_key in seen_run_urls or title_key in seen_run_titles:
+        normalized_title = _normalized_title(article.title)
+        published = article.published_date
+        nearby_title_keys = {(published, normalized_title)}
+        if published is not None:
+            nearby_title_keys.update(
+                {
+                    (published - timedelta(days=1), normalized_title),
+                    (published + timedelta(days=1), normalized_title),
+                }
+            )
+        if url_key in seen_run_urls or nearby_title_keys & seen_run_titles:
             continue
         seen_run_urls.add(url_key)
-        seen_run_titles.add(title_key)
+        seen_run_titles.add((published, normalized_title))
         unique_articles.append(article)
     return unique_articles
 
@@ -137,7 +137,7 @@ def _collect_source_results(
     failed_sources: list[Source] = []
     source_warnings: list[tuple[str, str]] = []
     seen_run_urls: set[str] = set()
-    seen_run_titles: set[tuple[date | None, str, str]] = set()
+    seen_run_titles: set[tuple[date | None, str]] = set()
 
     worker_count = min(SOURCE_FETCH_WORKERS, len(sources))
     with ThreadPoolExecutor(max_workers=worker_count) as executor:

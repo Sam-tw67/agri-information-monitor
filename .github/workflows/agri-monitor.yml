@@ -12,14 +12,6 @@ on:
         required: false
         type: boolean
         default: false
-      runner:
-        description: "GitHub-hosted runner used for diagnostics"
-        required: false
-        type: choice
-        options:
-          - ubuntu-latest
-          - windows-latest
-        default: windows-latest
 
 permissions:
   contents: write
@@ -30,7 +22,7 @@ concurrency:
 
 jobs:
   monitor:
-    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     # A single-source failure retries once; a total network outage retries before reporting.
     timeout-minutes: 120
     env:
