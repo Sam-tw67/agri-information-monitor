@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-17",
+  "updated_on": "2026-10-20",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -414,6 +414,34 @@
       "published_date": "2026-10-16",
       "source": "植物疫情彙整表",
       "sent_on": "2026-10-17"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243620",
+      "title": "捍衛家園換來被縣府提告，名間反焚化爐六居民遭控妨礙公務，縣府要求「從重量刑」",
+      "published_date": "2026-10-19",
+      "source": "上下游",
+      "sent_on": "2026-10-20"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243646",
+      "title": "白海豚棲地再遭開發，中油興建「第二海管」，影響白海豚生存，環評要求補件再審",
+      "published_date": "2026-10-19",
+      "source": "上下游",
+      "sent_on": "2026-10-20"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172509",
+      "title": "暖秋氣候乾燥 臺南區農改場籲請落花生農友注意防治葉蟬 、薊馬及蛾類。臺南區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-19",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-20"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172510",
+      "title": "水稻瘤野螟密度偏高，臺南區農改場籲請農友加強防治，並留意飛蝨發生。臺南區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-10-19",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-10-20"
     }
   ]
 }
