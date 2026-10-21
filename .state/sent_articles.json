@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-20",
+  "updated_on": "2026-10-21",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -442,6 +442,20 @@
       "published_date": "2026-10-19",
       "source": "植物疫情彙整表",
       "sent_on": "2026-10-20"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243703",
+      "title": "吹海風喝茶、穿青蛙裝撈蝦、探山海秘境，11個社區聯手，推出南台灣 6 條里山遊程",
+      "published_date": "2026-10-20",
+      "source": "上下游",
+      "sent_on": "2026-10-21"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243670",
+      "title": "土魠魚資源崩跌八成，卻捕撈幼魚便宜銷售？從無照捕撈到法規漏洞，產值崩解的制度省思",
+      "published_date": "2026-10-20",
+      "source": "上下游",
+      "sent_on": "2026-10-21"
     }
   ]
 }
