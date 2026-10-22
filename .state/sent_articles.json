@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-21",
+  "updated_on": "2026-10-22",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -456,6 +456,13 @@
       "published_date": "2026-10-20",
       "source": "上下游",
       "sent_on": "2026-10-21"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243592",
+      "title": "一群大學生，改變政府的國土規劃！從尖石到馬太鞍，「政大國土服務團」陪伴部落捍衛土地正義",
+      "published_date": "2026-10-21",
+      "source": "上下游",
+      "sent_on": "2026-10-22"
     }
   ]
 }
