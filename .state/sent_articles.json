@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-26",
+  "updated_on": "2026-10-27",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -598,6 +598,13 @@
       "sent_on": "2026-10-21"
     },
     {
+      "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQa0I2YnJ2cFZoSEt2dV9JT0czQmpQU0g0aklVQW9iemlQWWdvbkUySHV5eXRfOFN4VWpneTYyYmtaeG1aaXBnaXBIRkVCcE1DSUFOZVIzWUk4QW53eE5hcVh2LWZ3cm9vUVVIRDNSbGxnQXpHaGVqRXJXOVl0V1RQTVJPSlZMYzQ?oc=5",
+      "title": "強颱薔琵將接近 請農漁牧業做好防颱準備 - 農業知識入口網",
+      "published_date": "2026-10-20",
+      "source": "農業知識入口網－農改場農情關注站",
+      "sent_on": "2026-10-27"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/243592",
       "title": "一群大學生，改變政府的國土規劃！從尖石到馬太鞍，「政大國土服務團」陪伴部落捍衛土地正義",
       "published_date": "2026-10-21",
@@ -645,6 +652,13 @@
       "published_date": "2026-10-22",
       "source": "上下游",
       "sent_on": "2026-10-23"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243807",
+      "title": "社區營造 30 年，不能只有辦活動拚觀光，21 團體聯合宣言：重建地方治理，打造韌性台灣",
+      "published_date": "2026-10-26",
+      "source": "上下游",
+      "sent_on": "2026-10-27"
     }
   ]
 }
