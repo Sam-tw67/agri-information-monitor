@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-29",
+  "updated_on": "2026-10-30",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -729,6 +729,27 @@
       "published_date": "2026-10-28",
       "source": "上下游",
       "sent_on": "2026-10-29"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243912",
+      "title": "EP 137：從土地走進歌劇院：《風的餐桌》打造食材透明的風土盛宴",
+      "published_date": "2026-10-29",
+      "source": "上下游",
+      "sent_on": "2026-10-30"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243932",
+      "title": "台灣新米「花蓮 27 號」登場！美味不輸日本越光米，抗稻熱病耐高溫，免噴藥也能豐收",
+      "published_date": "2026-10-29",
+      "source": "上下游",
+      "sent_on": "2026-10-30"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/243998",
+      "title": "菱角解密》菱角為何長尖角？採收竟然要跪爬？二角菱好吃，四角菱守護水雉",
+      "published_date": "2026-10-29",
+      "source": "上下游",
+      "sent_on": "2026-10-30"
     }
   ]
 }
