@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-10-30",
+  "updated_on": "2026-10-31",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -750,6 +750,41 @@
       "published_date": "2026-10-29",
       "source": "上下游",
       "sent_on": "2026-10-30"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244097",
+      "title": "【飛吧！猛禽】一起認識台灣猛禽！里仁誠食市集生態策展",
+      "published_date": "2026-10-30",
+      "source": "上下游",
+      "sent_on": "2026-10-31"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244103",
+      "title": "【飛吧！猛禽】猛禽與我們的距離有多近？台灣猛禽保育講座",
+      "published_date": "2026-10-30",
+      "source": "上下游",
+      "sent_on": "2026-10-31"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244106",
+      "title": "【飛吧！猛禽】追尋鳥類40年！梁皆得導演的鏡頭背後故事",
+      "published_date": "2026-10-30",
+      "source": "上下游",
+      "sent_on": "2026-10-31"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244050",
+      "title": "南港茶展▸2026 有機’島茶形象館 #11/13~16免費體驗報名中",
+      "published_date": "2026-10-30",
+      "source": "上下游",
+      "sent_on": "2026-10-31"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244025",
+      "title": "稻米竟能吹出彩色泡泡！「風的餐桌」推出獨家「米泡泡」，手編稻草注連繩傳遞祝福",
+      "published_date": "2026-10-30",
+      "source": "上下游",
+      "sent_on": "2026-10-31"
     }
   ]
 }
