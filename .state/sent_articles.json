@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-02",
+  "updated_on": "2026-11-03",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -946,6 +946,20 @@
       "published_date": "2026-11-01",
       "source": "農業知識入口網－農改場農情關注站",
       "sent_on": "2026-11-02"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244173",
+      "title": "白河水庫上游山林遭剃頭，台南市府稱「只是除草」不開罰，環團轟執法失靈",
+      "published_date": "2026-11-02",
+      "source": "上下游",
+      "sent_on": "2026-11-03"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244108",
+      "title": "調查》上下游抽驗市售蒲燒鰻，3 成由中國違法進口，爭鮮定食 8、京都御握丸上榜",
+      "published_date": "2026-11-02",
+      "source": "上下游",
+      "sent_on": "2026-11-03"
     }
   ]
 }
