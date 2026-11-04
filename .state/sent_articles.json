@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-03",
+  "updated_on": "2026-11-04",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -960,6 +960,27 @@
       "published_date": "2026-11-02",
       "source": "上下游",
       "sent_on": "2026-11-03"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244213",
+      "title": "花生育種大突破，台南場育成「台南 21 號」抗油耗，半年依然新鮮，大粒紅皮香甜",
+      "published_date": "2026-11-03",
+      "source": "上下游",
+      "sent_on": "2026-11-04"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172512",
+      "title": "近期嘉義縣銀葉粉蝨密度持續達預警標準，籲請農友加強防範工作。嘉義縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-03",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-04"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172513",
+      "title": "風雨過後，請農友加強防範作物病害。高雄區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-03",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-04"
     }
   ]
 }
