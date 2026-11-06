@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-05",
+  "updated_on": "2026-11-06",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -988,6 +988,20 @@
       "published_date": "2026-11-04",
       "source": "上下游",
       "sent_on": "2026-11-05"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244299",
+      "title": "兩位日本樂手，為台灣農村唱歌 20 年，大竹研、早川徹相約「風的餐桌」，歌劇院草地獻演",
+      "published_date": "2026-11-05",
+      "source": "上下游",
+      "sent_on": "2026-11-06"
+    },
+    {
+      "url": "https://kmweb.moa.gov.tw/theme_data.php?id=102323&sub_theme=attention&theme=news",
+      "title": "「花現原味・家政70」花蓮場11月7日開FUN日登場　食農體驗、原民智慧與農業成果邀您一起探索",
+      "published_date": "2026-11-05",
+      "source": "農業知識入口網－農改場農情關注站",
+      "sent_on": "2026-11-06"
     }
   ]
 }
