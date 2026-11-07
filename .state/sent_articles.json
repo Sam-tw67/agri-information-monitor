@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-06",
+  "updated_on": "2026-11-07",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1002,6 +1002,13 @@
       "published_date": "2026-11-05",
       "source": "農業知識入口網－農改場農情關注站",
       "sent_on": "2026-11-06"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244326",
+      "title": "如阿里山陸稻堅韌，茶山雜糧產銷班，共耕共享，在自己的土地上重新站起",
+      "published_date": "2026-11-06",
+      "source": "上下游",
+      "sent_on": "2026-11-07"
     }
   ]
 }
