@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-07",
+  "updated_on": "2026-11-10",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1009,6 +1009,27 @@
       "published_date": "2026-11-06",
       "source": "上下游",
       "sent_on": "2026-11-07"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244380",
+      "title": "倒冷水就能吃熱便當！水試所研發「牡蠣殼發熱包」，遇水就會發熱，露營、防災皆可輕鬆吃熱食",
+      "published_date": "2026-11-09",
+      "source": "上下游",
+      "sent_on": "2026-11-10"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244081",
+      "title": "市售肉魚 9 成進口，今年肉魚忽然大幅回歸，卻變瘦了！海洋出了什麼事？",
+      "published_date": "2026-11-09",
+      "source": "上下游",
+      "sent_on": "2026-11-10"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172516",
+      "title": "苗栗縣二期水稻已陸續進入完熟期，經監測水稻飛蝨族群數量有上升情形，籲請農民加強水稻飛蝨類防治。苗栗區農業改良場、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-09",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-10"
     }
   ]
 }
