@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-10",
+  "updated_on": "2026-11-11",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1030,6 +1030,41 @@
       "published_date": "2026-11-09",
       "source": "植物疫情彙整表",
       "sent_on": "2026-11-10"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244410",
+      "title": "農民努力升級加工，反遭退出農保？百大青農、十大神農：過時制度扼殺農民轉型之路",
+      "published_date": "2026-11-10",
+      "source": "上下游",
+      "sent_on": "2026-11-11"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172523",
+      "title": "本市部分地區斜紋夜蛾成蟲密度偏高，籲請農友加強田間巡查，並落實防治工作，避免蟲害蔓延擴散。臺中市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-10",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-11"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172519",
+      "title": "桃園市斜紋夜蛾監測密度有攀升趨勢，大部分監測點位已達黃燈警戒。籲請農民加強防範工作。桃園市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-10",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-11"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172521",
+      "title": "桃園市水稻調查田區之白葉枯病持續發生，近期氣候有利病害發生與蔓延，籲請農友加強防範工作。桃園市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-10",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-11"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172520",
+      "title": "近期桃園市觀音區銀葉粉蝨密度持續達預警標準，籲請農友加強防範工作。桃園市政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-10",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-11"
     }
   ]
 }
