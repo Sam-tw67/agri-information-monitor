@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-11",
+  "updated_on": "2026-11-12",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1065,6 +1065,27 @@
       "published_date": "2026-11-10",
       "source": "植物疫情彙整表",
       "sent_on": "2026-11-11"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244443",
+      "title": "77 歲仙貝爺爺獲日本農林水產大臣賞，挑戰台灣米作仙貝，將出席「風的餐桌」營收捐台灣農民",
+      "published_date": "2026-11-11",
+      "source": "上下游",
+      "sent_on": "2026-11-12"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244467",
+      "title": "國產柑橘季節開跑，進口柑橘仍占貨架，產地強調風味優勢，貿易商揭市場攻防",
+      "published_date": "2026-11-11",
+      "source": "上下游",
+      "sent_on": "2026-11-12"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172524",
+      "title": "近期植物疫情調查發現本縣部分鄉鎮斜紋夜蛾密度呈上升趨勢，籲請農友注意防治，新竹縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-11",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-12"
     }
   ]
 }
