@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-12",
+  "updated_on": "2026-11-13",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1086,6 +1086,13 @@
       "published_date": "2026-11-11",
       "source": "植物疫情彙整表",
       "sent_on": "2026-11-12"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244378",
+      "title": "調查》你喝的拿鐵是用鮮奶嗎？三大超商使用「還原奶」，三大咖啡連鎖店、十間手搖飲品牌調查",
+      "published_date": "2026-11-12",
+      "source": "上下游",
+      "sent_on": "2026-11-13"
     }
   ]
 }
