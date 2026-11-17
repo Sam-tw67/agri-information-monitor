@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-13",
+  "updated_on": "2026-11-17",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1093,6 +1093,20 @@
       "published_date": "2026-11-12",
       "source": "上下游",
       "sent_on": "2026-11-13"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244557",
+      "title": "國產雜糧十年產值增 48 億，產官學找發展策略：強化育種、品質升級、市場行銷",
+      "published_date": "2026-11-16",
+      "source": "上下游",
+      "sent_on": "2026-11-17"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244559",
+      "title": "小麥淪政策孤兒、蕎麥供不應求、紅豆拚轉型！國產雜糧發展失衡，科研與加工亟待突破",
+      "published_date": "2026-11-16",
+      "source": "上下游",
+      "sent_on": "2026-11-17"
     }
   ]
 }
