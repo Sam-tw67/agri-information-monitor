@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-17",
+  "updated_on": "2026-11-18",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -661,6 +661,13 @@
       "sent_on": "2026-10-20"
     },
     {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16382&sub_theme=hot&theme=news",
+      "title": "臺中區農情月刊第326期出版了",
+      "published_date": "2026-10-19",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://phis.aphia.gov.tw/article-1-102-172509",
       "title": "暖秋氣候乾燥 臺南區農改場籲請落花生農友注意防治葉蟬 、薊馬及蛾類。臺南區農業改良場、防檢署及田邊好幫手關心您。",
       "published_date": "2026-10-19",
@@ -724,6 +731,13 @@
       "sent_on": "2026-10-21"
     },
     {
+      "url": "https://www.mdares.gov.tw/theme_data.php?id=6187&theme=hotnews_ws",
+      "title": "連續11年調升最低工資",
+      "published_date": "2026-10-20",
+      "source": "苗栗農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9NdUhkb3VXZjZlc0RTdEpQcnNGRjlULVlQdTk0a3B4bzJCU19UVE1UWTI4VS1uQklhOGp2bUE2d3JwaVFQRGp2MWY4dlVTN0NNdDcwWHFMMW4xYzBQWWphZ3lIakUyd0FtTk5VY21MUk50U0JvRDZQTA?oc=5",
       "title": "技術說明 - 農業技術交易網",
       "published_date": "2026-10-20",
@@ -743,6 +757,13 @@
       "published_date": "2026-10-21",
       "source": "上下游",
       "sent_on": "2026-10-22"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16390&sub_theme=news&theme=news",
+      "title": "強烈颱風「薔琵」即將來襲，臺中農改場籲請農友提前做好防颱準備工作",
+      "published_date": "2026-10-21",
+      "source": "台中農改場－新聞資訊",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1Wckt4S0NBUDdIeU1kWlhGSGlUOVdCbW5tOU9SaWwzdFdfUTEyTHBVdWVlRHdHS1BzTUMzb3hPMGRLRmlzdHVrdFhhbEMyRzB5QzJnYVh5M3EwelY5QUZVSklybUFFVW1wQ01aSFJEVnFvY1hoMnhiRUdn?oc=5",
@@ -785,6 +806,20 @@
       "published_date": "2026-10-22",
       "source": "上下游",
       "sent_on": "2026-10-23"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16392&sub_theme=hot&theme=news",
+      "title": "臺中區農業改良場 114年度年報出刊了！",
+      "published_date": "2026-10-22",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14948&sub_theme=agri&theme=news",
+      "title": "強烈颱風薔琵正接近臺灣東北部海面　請花蓮及宜蘭農友提高警覺",
+      "published_date": "2026-10-22",
+      "source": "花蓮農改場－本場新聞",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://udn.com/news/story/7327/9830071",
@@ -834,6 +869,27 @@
       "published_date": "2026-10-28",
       "source": "上下游",
       "sent_on": "2026-10-29"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16395&sub_theme=news&theme=news",
+      "title": "中部地區水稻飛蝨類及瘤野螟害蟲發生，臺中農改場籲請稻農加強管理以降低危害",
+      "published_date": "2026-10-28",
+      "source": "台中農改場－新聞資訊",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7205&theme=activity",
+      "title": "移至於南投縣埔里鎮舉辦「設施盆花智慧環控及灌溉技術成果示範觀摩會」",
+      "published_date": "2026-10-28",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14949&sub_theme=agri&theme=news",
+      "title": "花蓮27號水稻新品種亮相 花蓮農改場攜手三家產銷單位推動契作",
+      "published_date": "2026-10-28",
+      "source": "花蓮農改場－本場新聞",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://www.newsmarket.com.tw/blog/243912",
@@ -906,6 +962,13 @@
       "sent_on": "2026-10-31"
     },
     {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7213&theme=activity",
+      "title": "移至於新竹縣五峰鄉辦理115年「原鄉特有作物種原保存與育苗技術」講習會",
+      "published_date": "2026-10-30",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPa3hCS2hkd3c5b0VielJ3bEFVdWMycVNxQVRLSC1wclByVkFfZVVlOWhRQWc1dzlzd0x4SHBhdUpUNEhueUYwbjFzNlAzZk1xamt4T0JHQlp4bU9qS2ZTTm5NNERWSDFCcndqcXhjRC1CVXV5SnBKbktOM09OLV9weE93MXVROUU?oc=5",
       "title": "薔琵颱風逼近臺灣 農業部啟動防災整備 呼籲農漁民提前防颱 - 農業知識入口網",
       "published_date": "2026-10-31",
@@ -962,11 +1025,32 @@
       "sent_on": "2026-11-03"
     },
     {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16398&sub_theme=hot&theme=news",
+      "title": "本場「農技短報第4期(115年10月)－農用曳引機道路駕駛訓練模組」出刊了！",
+      "published_date": "2026-11-02",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7208&theme=activity",
+      "title": "移至於新北市深坑區辦理「115年國產有機質暨微生物等農田地力肥料推廣暨農業政策說明作物栽培管理技術諮詢」",
+      "published_date": "2026-11-02",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/244213",
       "title": "花生育種大突破，台南場育成「台南 21 號」抗油耗，半年依然新鮮，大粒紅皮香甜",
       "published_date": "2026-11-03",
       "source": "上下游",
       "sent_on": "2026-11-04"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7209&theme=activity",
+      "title": "移至於新竹縣湖口鄉辦理「115年國產有機質暨微生物等農田地力肥料推廣及因應氣候變遷-水稻栽培調適與農業政策說明作物栽培管理技術諮詢會議」",
+      "published_date": "2026-11-03",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://phis.aphia.gov.tw/article-1-102-172512",
@@ -990,11 +1074,46 @@
       "sent_on": "2026-11-05"
     },
     {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16407&sub_theme=hot&theme=news",
+      "title": "本場「農技短報第5期(115年10月)－電動圓盤式施肥機」出刊了！",
+      "published_date": "2026-11-04",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7216&theme=activity",
+      "title": "移至於新北市新店區辦理「國產有機質暨微生物等農田地力肥料推廣及農業政策說明講習會」",
+      "published_date": "2026-11-04",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7214&theme=activity",
+      "title": "移至於桃園市觀音區辦理大豆新品種「桃園2號-烏豐」田間示範觀摩會",
+      "published_date": "2026-11-04",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/244299",
       "title": "兩位日本樂手，為台灣農村唱歌 20 年，大竹研、早川徹相約「風的餐桌」，歌劇院草地獻演",
       "published_date": "2026-11-05",
       "source": "上下游",
       "sent_on": "2026-11-06"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7212&theme=activity",
+      "title": "移至於本場樹林分場辦理115年循環農業人才培育工作坊-農業剩餘物質循環及應用(堆肥)講習",
+      "published_date": "2026-11-05",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14956&sub_theme=hot&theme=news",
+      "title": "115-11-05 農業部公告花蓮縣為辦理115年薔琵颱風農業天然災害現金救助及低利貸款地區",
+      "published_date": "2026-11-05",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://kmweb.moa.gov.tw/theme_data.php?id=102323&sub_theme=attention&theme=news",
@@ -1011,6 +1130,20 @@
       "sent_on": "2026-11-07"
     },
     {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7204&theme=activity",
+      "title": "移至於桃園市復興區辦理「綠竹智慧灌溉省工管理模式建置與應用觀摩會」",
+      "published_date": "2026-11-06",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14958&sub_theme=agri&theme=news",
+      "title": "風雨澆不熄熱情！花蓮農改場開放日熱鬧登場　家政70週年原味慶生",
+      "published_date": "2026-11-07",
+      "source": "花蓮農改場－本場新聞",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/244380",
       "title": "倒冷水就能吃熱便當！水試所研發「牡蠣殼發熱包」，遇水就會發熱，露營、防災皆可輕鬆吃熱食",
       "published_date": "2026-11-09",
@@ -1023,6 +1156,13 @@
       "published_date": "2026-11-09",
       "source": "上下游",
       "sent_on": "2026-11-10"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16411&sub_theme=hot&theme=news",
+      "title": "農業部臺中區農業改良場115年生物資材應用研究室約僱技術員公開徵選公告",
+      "published_date": "2026-11-09",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
     },
     {
       "url": "https://phis.aphia.gov.tw/article-1-102-172516",
@@ -1067,6 +1207,20 @@
       "sent_on": "2026-11-11"
     },
     {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14961&sub_theme=hot&theme=news",
+      "title": "115-11-10 農業部辦理「115年度農業移工雇主訓練課程」，請農業移工雇主及申請外展農務服務之農場主(要派單位)踴躍報名參加",
+      "published_date": "2026-11-10",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=13112&sub_theme=recent_activity&theme=activity",
+      "title": "115-11-10 本場訂於115年11月18日（星期三）上午8時30分本場農業推廣大樓4樓國際會議廳舉辦「2026作物機能性應用與產業前瞻發展研討會」，歡迎踴躍參加",
+      "published_date": "2026-11-10",
+      "source": "花蓮農改場－近期活動",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/244443",
       "title": "77 歲仙貝爺爺獲日本農林水產大臣賞，挑戰台灣米作仙貝，將出席「風的餐桌」營收捐台灣農民",
       "published_date": "2026-11-11",
@@ -1095,6 +1249,62 @@
       "sent_on": "2026-11-13"
     },
     {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16420&sub_theme=news&theme=news",
+      "title": "國產雜糧科研永續競爭力策略論壇登場聚焦落花生、小麥、蕎麥及紅豆",
+      "published_date": "2026-11-12",
+      "source": "台中農改場－新聞資訊",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16419&sub_theme=hot&theme=news",
+      "title": "115年報廢財物場內公開拍賣案。",
+      "published_date": "2026-11-12",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16418&sub_theme=hot&theme=news",
+      "title": "臺中區農情月刊第327期出版了",
+      "published_date": "2026-11-12",
+      "source": "台中農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14965&sub_theme=hot&theme=news",
+      "title": "115-11-12 農業部公告花蓮縣鳳林鎮、玉里鎮及豐濱鄉為辦理木瓜等農作物115年薔琵颱風農業天然災害現金救助地區",
+      "published_date": "2026-11-12",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14962&sub_theme=hot&theme=news",
+      "title": "115-11-12 農業部有關本部補助財團法人農業科技研究院（以下簡稱農科院）辦理「2026臺灣服務業國際博覽會」農業主題攤位徵展案",
+      "published_date": "2026-11-12",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7215&theme=activity",
+      "title": "移至於新竹縣尖石鄉辦理115年「原鄉特有作物種原保存與育苗技術」講習會",
+      "published_date": "2026-11-13",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7219&theme=activity",
+      "title": "移至於新竹縣峨眉鄉辦理「桶柑果園草生栽培管理及生物炭施用增進土壤碳匯田間示範觀摩會」",
+      "published_date": "2026-11-13",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.mdares.gov.tw/theme_data.php?id=6189&theme=hotnews_ws",
+      "title": "116年度第1次文化部語言友善環境及創作應用與推廣補助作業要點",
+      "published_date": "2026-11-13",
+      "source": "苗栗農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
       "url": "https://www.newsmarket.com.tw/blog/244557",
       "title": "國產雜糧十年產值增 48 億，產官學找發展策略：強化育種、品質升級、市場行銷",
       "published_date": "2026-11-16",
@@ -1107,6 +1317,27 @@
       "published_date": "2026-11-16",
       "source": "上下游",
       "sent_on": "2026-11-17"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14970&sub_theme=hot&theme=news",
+      "title": "115-11-16 農業部補助財團法人農業科技研究院（以下簡稱農科院）辦理「2026臺灣服務業國際博覽會」農業主題攤位徵展案報名期限延長至115年11月20日止",
+      "published_date": "2026-11-16",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244611",
+      "title": "果肉像果凍、甜香如蜜，黃金果成農民轉作新選擇，不耐保存、品質落差大需突破",
+      "published_date": "2026-11-17",
+      "source": "上下游",
+      "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14971&sub_theme=hot&theme=news",
+      "title": "115-11-17 農業部公告花蓮縣新城鄉為辦理硬質玉米及大豆115年9至10月乾旱(遲發性)農業天然災害現金救助地區",
+      "published_date": "2026-11-17",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-18"
     }
   ]
 }
