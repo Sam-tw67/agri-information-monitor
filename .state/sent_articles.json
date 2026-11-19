@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-18",
+  "updated_on": "2026-11-19",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1338,6 +1338,13 @@
       "published_date": "2026-11-17",
       "source": "花蓮農改場－最新消息",
       "sent_on": "2026-11-18"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7222&theme=activity",
+      "title": "移至協助公告~農業部辦理「115年度農業移工雇主訓練課程」",
+      "published_date": "2026-11-18",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-19"
     }
   ]
 }
