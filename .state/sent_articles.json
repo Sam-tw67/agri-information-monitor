@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-19",
+  "updated_on": "2026-11-20",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1345,6 +1345,48 @@
       "published_date": "2026-11-18",
       "source": "桃園農改場－活動訊息",
       "sent_on": "2026-11-19"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244691",
+      "title": "烏山頭水庫上游遭偷埋廢棄物，黑泥驗出重金屬汞、鉛、鎘超標，環團憂污染嘉南平原",
+      "published_date": "2026-11-19",
+      "source": "上下游",
+      "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7220&theme=activity",
+      "title": "移至協助公告~國立中興大學辦理「有機食農教育種子教師培訓課程」",
+      "published_date": "2026-11-19",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://phis.aphia.gov.tw/article-1-102-172525",
+      "title": "雲林縣銀葉粉蝨密度有上升趨勢，請農友加強防治。雲林縣政府、防檢署及田邊好幫手關心您。",
+      "published_date": "2026-11-19",
+      "source": "植物疫情彙整表",
+      "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14974&sub_theme=hot&theme=news",
+      "title": "115-11-19 國立臺灣大學農業零碳技術與管理創新研究中心謹訂於115年11月30日（星期一）辦理「認識農業碳排放與農業淨零政策介紹（入門）」課程",
+      "published_date": "2026-11-19",
+      "source": "花蓮農改場－最新消息",
+      "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://www.hdares.gov.tw/theme_data.php?id=14975&sub_theme=agri&theme=news",
+      "title": "串聯本土保健作物研發與產業加值！產官學專家齊聚，攜手開創機能性作物新契機",
+      "published_date": "2026-11-19",
+      "source": "花蓮農改場－本場新聞",
+      "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://www.mdares.gov.tw/theme_data.php?id=6190&theme=hotnews_ws",
+      "title": "建置智能韌性設施農業及農機輔導體系",
+      "published_date": "2026-11-19",
+      "source": "苗栗農改場－最新消息",
+      "sent_on": "2026-11-20"
     }
   ]
 }
