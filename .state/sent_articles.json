@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-20",
+  "updated_on": "2026-11-21",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1387,6 +1387,27 @@
       "published_date": "2026-11-19",
       "source": "苗栗農改場－最新消息",
       "sent_on": "2026-11-20"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244715",
+      "title": "牛糞不再是污染源！台南 21 戶酪農聯手，讓牛糞發電、肥水種草，酪農賺錢更有尊嚴",
+      "published_date": "2026-11-20",
+      "source": "上下游",
+      "sent_on": "2026-11-21"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244717",
+      "title": "牛糞商機超乎想像！從綠電、蚯蚓肥到生技產業，四大法規障礙需突破",
+      "published_date": "2026-11-20",
+      "source": "上下游",
+      "sent_on": "2026-11-21"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7223&theme=activity",
+      "title": "移至於新竹縣尖石鄉辦理「115年國產有機質暨微生物等農田地力肥料推廣及因應氣候變遷- 高冷地蔬菜栽培調適與農業政策說明作物栽培管理技術諮詢會議」",
+      "published_date": "2026-11-20",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-21"
     }
   ]
 }
