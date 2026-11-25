@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-24",
+  "updated_on": "2026-11-25",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1569,6 +1569,13 @@
       "published_date": "2026-11-23",
       "source": "農業技術交易網農業新聞",
       "sent_on": "2026-11-24"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244891",
+      "title": "漁船上的廢棄釣繩，竟是 AI 產業的寶！以前兩秒踢下海，現在每公斤 25 元收購",
+      "published_date": "2026-11-24",
+      "source": "上下游",
+      "sent_on": "2026-11-25"
     }
   ]
 }
