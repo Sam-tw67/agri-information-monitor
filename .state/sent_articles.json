@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-25",
+  "updated_on": "2026-11-26",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1576,6 +1576,27 @@
       "published_date": "2026-11-24",
       "source": "上下游",
       "sent_on": "2026-11-25"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244918",
+      "title": "一塊國產豆包，緩解高鐵地層下陷！台灣大豆進台鐵便當，無印推國產豆奶，大豆農自建加工廠",
+      "published_date": "2026-11-25",
+      "source": "上下游",
+      "sent_on": "2026-11-26"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244828",
+      "title": "從田野走進歌劇院，「風的餐桌」兩萬人熱情相挺，展現農業跨界創造力（涉己新聞）",
+      "published_date": "2026-11-25",
+      "source": "上下游",
+      "sent_on": "2026-11-26"
+    },
+    {
+      "url": "https://www.tcdares.gov.tw/theme_data.php?id=16427&sub_theme=news&theme=news",
+      "title": "跨域整合智慧農機研發成果，推動農業省工及淨零永續發展 農業智動化研發應用研討會圓滿落幕",
+      "published_date": "2026-11-25",
+      "source": "台中農改場－新聞資訊",
+      "sent_on": "2026-11-26"
     }
   ]
 }
