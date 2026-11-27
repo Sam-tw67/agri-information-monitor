@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-26",
+  "updated_on": "2026-11-27",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1597,6 +1597,27 @@
       "published_date": "2026-11-25",
       "source": "台中農改場－新聞資訊",
       "sent_on": "2026-11-26"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244991",
+      "title": "台灣桂圓世界冠軍之旅！柴焙燻香，成就醲蒸餾所「世界最佳風味琴酒」、英國果醬三冠王",
+      "published_date": "2026-11-26",
+      "source": "上下游",
+      "sent_on": "2026-11-27"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7211&theme=activity",
+      "title": "移至於新北市三芝區辦理「115年山藥友善栽培管理技術及國產有機質暨微生物等農田地力肥料推廣講習會」",
+      "published_date": "2026-11-26",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-27"
+    },
+    {
+      "url": "https://www.kdais.gov.tw/theme_data.php?id=10379&sub_theme=announcement&theme=news",
+      "title": "移至近日降雨病害發生風險提高，籲請農友加強田間巡查及防治",
+      "published_date": "2026-11-26",
+      "source": "高雄農改場－公告資訊",
+      "sent_on": "2026-11-27"
     }
   ]
 }
