@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_on": "2026-11-27",
+  "updated_on": "2026-11-28",
   "sent_articles": [
     {
       "url": "https://udn.com/news/story/7241/9751354",
@@ -1618,6 +1618,27 @@
       "published_date": "2026-11-26",
       "source": "高雄農改場－公告資訊",
       "sent_on": "2026-11-27"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/244361",
+      "title": "台灣鰻魚美食圖鑑》白鰻、鱸鰻、黃鱔、土龍、海鰻、錢鰻，身世美味一次看懂",
+      "published_date": "2026-11-27",
+      "source": "上下游",
+      "sent_on": "2026-11-28"
+    },
+    {
+      "url": "https://www.newsmarket.com.tw/blog/245038",
+      "title": "吃對了才走得遠，暖化世代的餐桌革命【2026 永續飲食生活節】",
+      "published_date": "2026-11-27",
+      "source": "上下游",
+      "sent_on": "2026-11-28"
+    },
+    {
+      "url": "https://www.tydares.gov.tw/theme_data.php?id=7210&theme=activity",
+      "title": "移至轉知～財團法人台灣區花卉發展協會舉辦「2026臺灣花卉推介會」",
+      "published_date": "2026-11-27",
+      "source": "桃園農改場－活動訊息",
+      "sent_on": "2026-11-28"
     }
   ]
 }
